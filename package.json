@@ -1,0 +1,9 @@
+{
+  "name": "medam-inventree",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=26.13.0 <27"
+  }
+}

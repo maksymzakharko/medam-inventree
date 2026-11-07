@@ -1,0 +1,67 @@
+{
+  "observedAtUtc": "2026-11-07T09:41:53.692552+00:00",
+  "scope": "Source audit and repository scaffold; no VPS exists yet; no running InvenTree tested",
+  "node": {
+    "version": "v26.13.0",
+    "lts": "Lithium",
+    "source": "https://nodejs.org/dist/index.json"
+  },
+  "npmVersions": [
+    {
+      "name": "pnpm",
+      "version": "12.18.0",
+      "source": "https://registry.npmjs.org/pnpm/latest"
+    },
+    {
+      "name": "fastify",
+      "version": "5.12.8",
+      "source": "https://registry.npmjs.org/fastify/latest"
+    },
+    {
+      "name": "react",
+      "version": "19.3.1",
+      "source": "https://registry.npmjs.org/react/latest"
+    },
+    {
+      "name": "vite",
+      "version": "8.3.6",
+      "source": "https://registry.npmjs.org/vite/latest"
+    },
+    {
+      "name": "zod",
+      "version": "4.6.7",
+      "source": "https://registry.npmjs.org/zod/latest"
+    },
+    {
+      "name": "vitest",
+      "version": "5.1.0",
+      "source": "https://registry.npmjs.org/vitest/latest"
+    }
+  ],
+  "inventree": {
+    "version": "1.7.0",
+    "apiVersion": 570,
+    "commit": "365245ed73eb469cf80578856947ce92eca8b271",
+    "source": "https://github.com/inventree/InvenTree/releases/tag/1.7.0"
+  },
+  "schema": {
+    "commit": "6c1dbec0b81d4f6af41db03648a96e800eb8ec23",
+    "path": "export/570/api.yaml",
+    "sha256": "2437e90db2f73a5fbac9585eb683421ca8c8710711b65f57196536e9b1b875ae",
+    "source": "https://github.com/inventree/schema"
+  },
+  "ovh": {
+    "source": "https://www.ovhcloud.com/pl/vps/",
+    "VPS-1": {
+      "vcpu": 2,
+      "ramGiB": 4,
+      "diskGB": 40
+    },
+    "VPS-2": {
+      "vcpu": 4,
+      "ramGiB": 8,
+      "diskGB": 75
+    },
+    "notes": "Offer observation; no purchase or performance test"
+  }
+}
