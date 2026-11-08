@@ -1,0 +1,9 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    { "idx": 0, "version": "7", "when": 1794009600000, "tag": "0000_initial", "breakpoints": false },
+    { "idx": 1, "version": "7", "when": 1794009600001, "tag": "0001_private_warehouses", "breakpoints": false },
+    { "idx": 2, "version": "7", "when": 1794009600002, "tag": "0002_reconciled_discrepancy", "breakpoints": false }
+  ]
+}

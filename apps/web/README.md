@@ -1,12 +1,15 @@
-# React PWA — plan implementacji
+# MEDAM React PWA
 
-Ekrany: logowanie, mój magazyn, rejestracja zużycia, moja historia, zgłoszenie problemu.
-Magazynier/admin otrzyma osobne widoki przyjęć, przesunięć i uzgadniania operacji.
+Vite/React/TypeScript, polski interfejs, osobne widoki ratownika i administracji.
+`src/api.ts` obsługuje cookies/CSRF i wygaśnięcie sesji. PWA nigdy nie otrzymuje
+administracyjnego tokenu InvenTree. Service worker przechowuje wyłącznie zasoby
+statyczne; API jest network-only, a zużycie offline nie jest kolejkowane.
 
-Jedna domena dla aplikacji i `/api`. Cookies HttpOnly; żadnego tokena InvenTree.
-Status braku sieci i brak możliwości wykonania rozchodu offline.
-Service worker przechowuje wyłącznie statyczne zasoby; `/api/*` zawsze network-only.
-Po utracie odpowiedzi aplikacja sprawdza identyfikator operacji; nie generuje nowego
-klucza dla tego samego zgłoszenia. Sukces dopiero po zweryfikowaniu wykonania.
+`pnpm --filter @medam/web dev` uruchamia Vite na loopback; `/api` jest proxy do
+lokalnego Fastify na3000. Dla tego trybu ustaw w konfiguracji API
+`APP_ORIGIN=http://127.0.0.1:5173` i otwieraj właśnie ten adres Vite. Nie umieszczaj
+sekretów backendu w zmiennych VITE ani w kodzie klienta.
 
-Manifest PWA, ikony, Vite i komponenty powstaną po akceptacji planu.
+`pnpm build` tworzy statyczne dist dla Caddy. Manifest, PNG/SVG i ikona iOS są
+w public. Testy PWA oraz komputer/telefon: `tests/e2e`; rzeczywisty iOS/Android
+wymaga pilotażu HTTPS. Instrukcje wdrożenia są w `../../docs/09-installation.md`.

@@ -1,0 +1,17 @@
+[Unit]
+Description=MEDAM optional notification about failed unit %i
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/medam
+EnvironmentFile=-/etc/medam/restic.env
+EnvironmentFile=-/etc/medam/monitor.env
+ExecStart=/opt/medam/infrastructure/scripts/alert.sh "MEDAM: zadanie %i zakończyło się błędem; sprawdź prywatny journal."
+TimeoutStartSec=20
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true

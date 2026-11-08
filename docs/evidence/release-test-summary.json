@@ -1,0 +1,35 @@
+{
+  "recordedAtUtc": "2026-11-08T20:52:19.830022+00:00",
+  "scope": "Local app verification with real PostgreSQL17.11 and test-only HTTP InvenTree transport double. No live InvenTree/OVH test.",
+  "node": "26.13.0",
+  "pnpm": "12.18.0",
+  "integration": {
+    "numTotalTests": 43,
+    "numPassedTests": 43,
+    "numFailedTests": 0,
+    "numPendingTests": 0,
+    "success": true,
+    "startTime": 1794170683283
+  },
+  "browser": {
+    "startTime": "2026-11-08T20:45:00.841Z",
+    "duration": 18688.289999999997,
+    "expected": 8,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "productionDependencies": {
+    "vulnerabilities": {
+      "info": 0,
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0
+    },
+    "dependencies": 89,
+    "devDependencies": 0,
+    "optionalDependencies": 15,
+    "totalDependencies": 104
+  }
+}

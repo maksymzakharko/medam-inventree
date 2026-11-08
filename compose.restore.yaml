@@ -1,0 +1,25 @@
+# Restore rehearsal only. No migrations or worker are started by restore.sh.
+services:
+  api:
+    restart: "no"
+    environment:
+      NODE_ENV: development
+      APP_ORIGIN: ${APP_ORIGIN}
+      COOKIE_SECURE: "false"
+  edge:
+    restart: "no"
+  app-db:
+    restart: "no"
+  inventree-db:
+    restart: "no"
+  inventree-cache:
+    restart: "no"
+  inventree-server:
+    restart: "no"
+  inventree-worker:
+    restart: "no"
+  admin-proxy:
+    restart: "no"
+networks:
+  ingress:
+    internal: true

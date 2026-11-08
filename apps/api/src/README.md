@@ -1,19 +1,16 @@
-# Backend — zaplanowane granice modułów
+# Fastify API
 
-`server.ts` i rejestracja pluginów powstaną podczas implementacji.
-To szkielet katalogów, bez działającego serwera.
+`server.ts` ładuje konfigurację, tworzy pulę PostgreSQL i uruchamia `app.ts`.
+`buildApp` przyjmuje konfigurację, bazę i opcjonalny klient InvenTree; ten sam
+serwer jest używany przez testy i produkcję.
 
-| Moduł | Odpowiedzialność |
-| --- | --- |
-| auth | Sesje PostgreSQL, CSRF, hasła, limity i reset |
-| users | Role, aktywność kont, przypisanie numerycznego location ID |
-| inventory | Odczyty InvenTree, FEFO, kontrola lokalizacji, progi |
-| consumption | Protokół operacji i trwała idempotencja |
-| movements | Przyjęcia, przesunięcia, korekty; ten sam protokół co rozchód |
-| reports | Zgłoszenia problemów i eksporty uprawnionych danych |
-| audit | Historia własnych operacji i osobny widok administracyjny |
-| integrations/inventree | Typowany klient, walidacja Zod, pagination, timeouty |
-| plugins | Konfiguracja, DB, cookies/session, CSRF, security headers, log redaction |
+- `modules/auth`: sesje, CSRF, Argon2id, reset i limity.
+- `modules/users`: role, indywidualne przydziały, odwołanie dostępu.
+- `modules/inventory`: odczyty, izolacja, FEFO, minima/krok ilościowy.
+- `modules/consumption`, `movements`: trwała brama i idempotencja wszystkich mutacji.
+- `modules/reports`, `audit`: zgłoszenia, własna historia i eksporty uprawnionych danych.
+- `integrations/inventree`: walidowany klient REST, timeouty, paginacja i audyt efektu.
+- `db`, `../drizzle`: transakcje i wersjonowane migracje; `cli`: kontrolowane narzędzia.
 
-Kod migracji Drizzle trafi do `apps/api/drizzle/` w kolejnym etapie.
-Projekt tabel opisano w `docs/02-architecture.md` i `docs/04-security-and-consistency.md`.
+Żaden moduł nie utrzymuje własnych bieżących ilości zapasów. Uruchomienie i odbiór:
+`../../../docs/09-installation.md` i `../../../docs/12-release-verification.md`.

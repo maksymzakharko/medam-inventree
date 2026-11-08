@@ -1,0 +1,261 @@
+x-service: &service
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: local
+    options: { max-size: "10m", max-file: "5" }
+
+x-it-env: &it-env
+  INVENTREE_DB_ENGINE: postgresql
+  INVENTREE_DB_HOST: inventree-db
+  INVENTREE_DB_PORT: "5432"
+  INVENTREE_DB_NAME: inventree
+  INVENTREE_DB_USER: inventree
+  INVENTREE_CACHE_ENABLED: "True"
+  INVENTREE_CACHE_HOST: inventree-cache
+  INVENTREE_CACHE_PORT: "6379"
+  INVENTREE_SECRET_KEY_FILE: /run/secrets/inventree_secret_key
+  INVENTREE_SITE_URL: ${INVENTREE_SITE_URL:-http://localhost:8090}
+  INVENTREE_ALLOWED_HOSTS: inventree-server,localhost,127.0.0.1
+  INVENTREE_TRUSTED_ORIGINS: ${INVENTREE_SITE_URL:-http://localhost:8090}
+  INVENTREE_DEBUG: "False"
+  INVENTREE_AUTO_UPDATE: "False"
+  INVENTREE_PY_ENV: ""
+  INVENTREE_PLUGINS_ENABLED: "False"
+  INVENTREE_GUNICORN_WORKERS: "2"
+  INVENTREE_BACKGROUND_WORKERS: "2"
+  INVENTREE_LOG_LEVEL: WARNING
+
+x-api-env: &api-env
+  NODE_ENV: development
+  APP_ORIGIN: ${APP_ORIGIN:-http://localhost:8080}
+  COOKIE_SECURE: "false"
+  API_HOST: 0.0.0.0
+  API_PORT: "3000"
+  # This dedicated ingress subnet contains only the edge and API containers.
+  TRUST_PROXY: ${MEDAM_INGRESS_SUBNET:-172.30.10.0/28}
+  APP_DATABASE_URL_FILE: /run/secrets/app_database_url
+  SESSION_SECRET_FILE: /run/secrets/session_secret
+  INVENTREE_URL: http://inventree-server:8000
+  INVENTREE_TOKEN_FILE: /run/secrets/inventree_token
+  INVENTREE_TIMEOUT_MS: "10000"
+  INVENTREE_EXPECTED_VERSION: "1.7.0"
+  INVENTREE_EXPECTED_API_VERSION: "570"
+
+x-it-common: &it-common
+  <<: *service
+  image: ${INVENTREE_IMAGE:-inventree/inventree:1.7.0@sha256:2459dea3237b5d55898258539b39d16ca6a5fd76949d0d749b42cdd2fee16941}
+  environment: *it-env
+  entrypoint: ["/bin/bash", "/medam/inventree-entrypoint.sh"]
+  command: ["sh", "-c", "exec gunicorn -c ./gunicorn.conf.py InvenTree.wsgi -b 0.0.0.0:8000 --chdir /home/inventree/src/backend/InvenTree"]
+  volumes:
+    - inventree-data:/home/inventree/data
+    - ./infrastructure/docker/inventree-entrypoint.sh:/medam/inventree-entrypoint.sh:ro
+    - ./infrastructure/scripts/inventree-bootstrap.py:/medam/inventree-bootstrap.py:ro
+  secrets: [inventree_db_password, inventree_secret_key]
+  networks: [inventree-api, inventree-data]
+
+x-api-common: &api-common
+  <<: *service
+  image: ${API_IMAGE:-medam-api:local}
+  build:
+    context: .
+    dockerfile: infrastructure/docker/Dockerfile
+    target: api
+  environment: *api-env
+  cap_drop: [ALL]
+  cap_add: [SETUID, SETGID]
+  networks: [ingress, app-data, inventree-api]
+  secrets:
+    - app_database_url
+    - session_secret
+    - inventree_token
+  init: true
+
+services:
+  app-db:
+    <<: *service
+    image: postgres:17.11-alpine3.24@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+    entrypoint: ["/bin/sh", "/medam/app-entrypoint.sh"]
+    command: ["postgres", "-c", "max_connections=60", "-c", "shared_buffers=128MB"]
+    environment: { POSTGRES_USER: postgres, POSTGRES_DB: postgres }
+    secrets: [app_pg_admin_password, app_runtime_password, app_migrator_password]
+    volumes:
+      - app-db-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/app-entrypoint.sh:/medam/app-entrypoint.sh:ro
+      - ./infrastructure/postgres/01-app-init.sql:/docker-entrypoint-initdb.d/01-app-init.sql:ro
+    networks: [app-data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d medam_app']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    mem_limit: 768m
+
+  inventree-db:
+    <<: *service
+    image: postgres:17.11-alpine3.24@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+    entrypoint: ["/bin/sh", "/medam/inventree-entrypoint.sh"]
+    command: ["postgres", "-c", "max_connections=60", "-c", "shared_buffers=256MB"]
+    environment: { POSTGRES_USER: postgres, POSTGRES_DB: postgres }
+    secrets: [inventree_pg_admin_password, inventree_db_password]
+    volumes:
+      - inventree-db-data:/var/lib/postgresql/data
+      - ./infrastructure/postgres/inventree-entrypoint.sh:/medam/inventree-entrypoint.sh:ro
+      - ./infrastructure/postgres/01-inventree-init.sql:/docker-entrypoint-initdb.d/01-inventree-init.sql:ro
+    networks: [inventree-data]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d inventree']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    mem_limit: 1g
+
+  inventree-cache:
+    <<: *service
+    image: redis:7.4.12-alpine@sha256:c5d34a98396a4775e223c74e929162c35c5a2182901ba26b50ade939941ce14b
+    command: [redis-server, --save, "", --appendonly, "no", --maxmemory, 128mb, --maxmemory-policy, allkeys-lru]
+    networks: [inventree-data]
+    cap_drop: [ALL]
+    user: redis
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    mem_limit: 192m
+
+  inventree-init:
+    <<: *it-common
+    restart: "no"
+    command: ["/bin/bash", "-c", "invoke migrate && invoke static"]
+    depends_on:
+      inventree-db: { condition: service_healthy }
+      inventree-cache: { condition: service_healthy }
+    mem_limit: 1g
+
+  inventree-server:
+    <<: *it-common
+    depends_on:
+      inventree-init: { condition: service_completed_successfully }
+    healthcheck:
+      test: [CMD-SHELL, 'invoke server-health --address http://localhost:8000']
+      interval: 20s
+      timeout: 8s
+      retries: 15
+      start_period: 60s
+    mem_limit: 1536m
+
+  inventree-worker:
+    <<: *it-common
+    command: [invoke, worker]
+    depends_on:
+      inventree-server: { condition: service_healthy }
+    healthcheck:
+      test: [CMD-SHELL, 'invoke worker-health']
+      interval: 60s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    mem_limit: 1g
+
+  migrate:
+    <<: *api-common
+    restart: "no"
+    command: [dist/cli/index.js, migrate]
+    environment:
+      <<: *api-env
+      APP_DATABASE_URL_FILE: /run/secrets/app_migration_database_url
+    secrets:
+      - app_migration_database_url
+      - session_secret
+      - inventree_token
+    depends_on:
+      app-db: { condition: service_healthy }
+
+  app-grants:
+    <<: *service
+    image: postgres:17.11-alpine3.24@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+    restart: "no"
+    entrypoint: ["/bin/sh", "-ec"]
+    command: ['export PGPASSWORD="$$(cat /run/secrets/app_pg_admin_password)"; exec psql -v ON_ERROR_STOP=1 -h app-db -U postgres -f /medam/grants.sql']
+    secrets: [app_pg_admin_password]
+    volumes: [./infrastructure/postgres/02-app-grants.sql:/medam/grants.sql:ro]
+    networks: [app-data]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+
+  api:
+    <<: *api-common
+    command: [dist/server.js]
+    depends_on:
+      app-grants: { condition: service_completed_successfully }
+      inventree-server: { condition: service_healthy }
+    mem_limit: 768m
+
+  app-cli:
+    <<: *api-common
+    profiles: [tools]
+    restart: "no"
+    command: [dist/cli/index.js, --help]
+    stdin_open: true
+    tty: true
+
+  edge:
+    <<: *service
+    image: ${EDGE_IMAGE:-medam-edge:local}
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile
+      target: edge
+    ports: ["127.0.0.1:${APP_HTTP_PORT:-8080}:80"]
+    networks: [ingress]
+    depends_on:
+      api: { condition: service_healthy }
+    volumes:
+      - ./infrastructure/caddy/Caddyfile.local:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    mem_limit: 192m
+
+  admin-proxy:
+    <<: *service
+    image: caddy:2.11.9-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9
+    profiles: [admin]
+    ports: ["127.0.0.1:${ADMIN_HTTP_PORT:-8090}:80"]
+    volumes:
+      - ./infrastructure/caddy/Caddyfile.admin:/etc/caddy/Caddyfile:ro
+      - inventree-data:/inventree:ro
+    networks: [inventree-api]
+    depends_on:
+      inventree-server: { condition: service_healthy }
+    mem_limit: 128m
+
+networks:
+  ingress:
+    ipam:
+      config: [{ subnet: '${MEDAM_INGRESS_SUBNET:-172.30.10.0/28}' }]
+  app-data: { internal: true }
+  inventree-api: { internal: true }
+  inventree-data: { internal: true }
+
+volumes:
+  app-db-data:
+  inventree-db-data:
+  inventree-data:
+  caddy-data:
+  caddy-config:
+
+secrets:
+  app_pg_admin_password: { file: '${SECRETS_DIR:-./secrets}/app_pg_admin_password' }
+  app_runtime_password: { file: '${SECRETS_DIR:-./secrets}/app_runtime_password' }
+  app_migrator_password: { file: '${SECRETS_DIR:-./secrets}/app_migrator_password' }
+  app_database_url: { file: '${SECRETS_DIR:-./secrets}/app_database_url' }
+  app_migration_database_url: { file: '${SECRETS_DIR:-./secrets}/app_migration_database_url' }
+  session_secret: { file: '${SECRETS_DIR:-./secrets}/session_secret' }
+  inventree_pg_admin_password: { file: '${SECRETS_DIR:-./secrets}/inventree_pg_admin_password' }
+  inventree_db_password: { file: '${SECRETS_DIR:-./secrets}/inventree_db_password' }
+  inventree_secret_key: { file: '${SECRETS_DIR:-./secrets}/inventree_secret_key' }
+  inventree_token: { file: '${SECRETS_DIR:-./secrets}/inventree_token' }

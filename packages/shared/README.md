@@ -1,8 +1,9 @@
 # Wspólne kontrakty
 
-W `src/schemas` powstaną ścisłe schematy Zod żądań i odpowiedzi opisanych w
-`docs/05-api-contract.md`, a typy będą inferowane ze schematów.
-Walidacja frontendu pomaga użytkownikowi; backend zawsze ponownie waliduje.
-Nieznane pola są odrzucane, nie ignorowane. Ilości są dodatnimi ciągami dziesiętnymi,
-nie liczbami zmiennoprzecinkowymi JavaScript. Wspólne pakiety nie importują sekretów
-ani klienta InvenTree.
+`src/index.ts` eksportuje ścisłe schematy Zod wejść, role/typy DTO, ilości i daty.
+UUID normalizowane do małych liter zapewniają tę samą korelację w PostgreSQL,
+InvenTree i UI. Ilości są stringami dziesiętnymi; kod nie liczy stock przez float.
+Backend waliduje niezależnie od formularza, a zewnętrzne odpowiedzi dodatkowo
+waliduje klient InvenTree. Ten pakiet nie importuje sekretów ani serwerowego klienta.
+
+`pnpm --filter @medam/shared build` generuje dist JS/deklaracje przed API/web.
