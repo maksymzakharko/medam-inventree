@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+// Initial DAC_READ_SEARCH permits read-only 0600 bind secrets owned by the host operator.
+// setuid below drops root and its capabilities before loading application code.
 for (const key of ['APP_DATABASE_URL', 'SESSION_SECRET', 'INVENTREE_TOKEN']) {
   const file = process.env[`${key}_FILE`];
   if (file) process.env[key] = readFileSync(file, 'utf8').trim();

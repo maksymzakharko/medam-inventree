@@ -64,7 +64,7 @@ x-api-common: &api-common
     target: api
   environment: *api-env
   cap_drop: [ALL]
-  cap_add: [SETUID, SETGID]
+  cap_add: [SETUID, SETGID, DAC_READ_SEARCH]
   networks: [ingress, app-data, inventree-api]
   secrets:
     - app_database_url
