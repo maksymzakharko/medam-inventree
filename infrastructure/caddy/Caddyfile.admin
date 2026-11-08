@@ -1,10 +1,17 @@
 :80 {
-  handle_path /static/* { root * /inventree/static; file_server }
-  handle_path /media/* {
-    root * /inventree/media
-    header Content-Disposition attachment
-    forward_auth inventree-server:8000 { uri /auth/ }
-    file_server
-  }
-  handle { reverse_proxy inventree-server:8000 }
+	handle_path /static/* {
+		root * /inventree/static
+		file_server
+	}
+	handle_path /media/* {
+		root * /inventree/media
+		header Content-Disposition attachment
+		forward_auth inventree-server:8000 {
+			uri /auth/
+		}
+		file_server
+	}
+	handle {
+		reverse_proxy inventree-server:8000
+	}
 }

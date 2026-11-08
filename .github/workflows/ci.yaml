@@ -62,6 +62,12 @@ jobs:
         run: |
           infrastructure/scripts/setup.sh
           infrastructure/scripts/medam-compose.sh config --quiet
+          for file in Caddyfile.local Caddyfile.production Caddyfile.admin; do
+            docker run --rm --entrypoint caddy -e APP_DOMAIN=magazyn.example.invalid \
+              -v "$PWD/infrastructure/caddy:/etc/caddy:ro" \
+              caddy:2.11.9-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9 \
+              adapt --config "/etc/caddy/$file" --adapter caddyfile >/dev/null
+          done
       - name: Build API and PWA containers
         run: infrastructure/scripts/medam-compose.sh build api edge
       - name: CLI migration smoke
@@ -85,3 +91,29 @@ jobs:
           curl --fail --silent http://localhost:8080/health/edge
           curl --fail --silent http://localhost:8080/icons/icon-192.png --output /tmp/medam-icon.png
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/me)" = 401
+      - name: Exercise the real stock and audit contract
+        run: |
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/secrets:/medam-secrets:rw" \
+            -v "$PWD/tests/contract/seed-inventree.py:/medam/seed-contract.py:ro" \
+            inventree-server python /medam/seed-contract.py
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/tests/contract/inventree-live.mjs:/app/inventree-live.mjs:ro" \
+            -v "$PWD/secrets/contract-fixture.json:/app/contract-fixture.json:ro" \
+            app-cli inventree-live.mjs
+      - name: Sanitized container diagnostics
+        if: failure()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          result=subprocess.run(['infrastructure/scripts/medam-compose.sh','logs','--no-color','--tail=60'],capture_output=True,text=True)
+          log=result.stdout+result.stderr
+          for path in Path('secrets').glob('*'):
+              if path.is_file():
+                  value=path.read_text().strip()
+                  if len(value)>7: log=log.replace(value,'[REDACTED]')
+          print(log[-30000:])
+          PY
