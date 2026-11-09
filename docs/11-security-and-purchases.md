@@ -126,6 +126,10 @@ dla migracji i kontroli odczytowych, które pomijają domyślny cache InvenTree.
 Nie przełączaj brokera używanej instancji z oczekującymi zadaniami. Redis usuwa
 zadanie z kolejki po pobraniu, więc sama pusta kolejka nie dowodzi zakończenia
 pracy: backup wymaga najpierw łagodnego zakończenia workera z kodem 0.
+Redis stosuje `noeviction`, aby brak pamięci nie usuwał zadań kolejki. Nie ma
+trwałego dziennika Redis; worker wykonuje wyłącznie zadania pomocnicze InvenTree,
+a operacje stock i trwała idempotencja pozostają w Fastify/PostgreSQL. Restart
+Redis wymaga kontroli zadań; nie wolno włączać niezależnych workflowów stock.
 Kontrola brokera działa w kontekście `check` i przy PostgreSQL tylko do odczytu,
 aby uruchomienie diagnostyki nie tworzyło nowych zadań przez hooki Django.
 Źródła: [konfiguracja InvenTree](https://github.com/inventree/InvenTree/blob/1.7.0/src/backend/InvenTree/InvenTree/setting/worker.py),
