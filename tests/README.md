@@ -16,7 +16,7 @@ trwałe operacje w prawdziwym PostgreSQL. Kontrolowany **testowy serwer HTTP**
 zastępuje InvenTree wyłącznie w tych testach, aby odtwarzać timeout po zastosowaniu
 zmiany, częściową realizację, brak i duplikację audytu oraz wadliwe filtrowanie.
 Nie jest importowany do produkcji i nie jest dowodem zgodności żywej instancji
-InvenTree. Osobny smoke test prawdziwego InvenTree pozostaje wymagany.
+InvenTree. Oddzielny test prawdziwego InvenTree uruchamia workflow CI opisany niżej.
 
 Zakres: wszystkie 10 tożsamości ratowników i 12 magazynów; cudze szczegóły, rozchody,
 zgłoszenia, historia, operacje i eksporty; nieznane pola; nieprawidłowa późniejsza
@@ -52,3 +52,27 @@ w localStorage i brak odtworzenia zapasów po przeładowaniu offline.
 Zrzuty i ślady niepowodzeń trafiają do ignorowanych przez Git `test-results/` oraz
 `playwright-report/`. Mobilna emulacja nie zastępuje testów instalacji PWA na
 rzeczywistym Androidzie i iOS ani testów HTTPS na docelowym VPS.
+
+## Prawdziwy InvenTree i infrastruktura
+
+Workflow `.github/workflows/ci.yaml` buduje Compose na oddzielnym, jednorazowym
+runnerze. Testy `tests/contract` mają jawne blokady `CI` i dedykowane flagi;
+nie uruchamiaj ich na używanej instancji. Przygotowują wyłącznie testowe dane:
+
+- `verify-bootstrap.sh`: rzeczywisty administrator CLI, 12 mapowań, ponowna
+  synchronizacja bez duplikatów i finalizacja tymczasowych uprawnień integracji.
+- `inventree-live.mjs`: skompilowany klient i weryfikator dowodów na prawdziwym API;
+  przyjęcie/CID, rozchód, częściowy i pełny transfer, zwiększenie, wykrycie
+  przycięcia ilości i zachowanie wyzerowanej pozycji.
+- `verify-restore.sh`: spójny lokalny checkpoint, świeży izolowany projekt,
+  porównanie stock/LOT/EXP, migracji i pliku mediów, readiness oraz publiczne 401.
+  Test na tym samym runnerze nie potwierdza offsite ani odzyskania całego hosta.
+
+Testy bezpieczeństwa archiwów i orkiestracji można wykonać bez Dockera:
+
+```sh
+python3 -m unittest discover -s infrastructure/tests -v
+```
+
+Używają prawdziwych archiwów i SHA-256 oraz kontrolowanego transportu Docker/dump.
+Rzeczywiste wyniki, commit i odnośnik do CI: [raport wydania](../docs/12-release-verification.md).

@@ -158,7 +158,10 @@ services:
 
   inventree-worker:
     <<: *it-common
-    command: [invoke, worker]
+    # Run Django-Q directly so Docker SIGTERM reaches its graceful-stop handler.
+    # invoke worker wraps this command in a PTY subprocess and can miss shutdown.
+    command: [python3, /home/inventree/src/backend/InvenTree/manage.py, qcluster]
+    stop_grace_period: 180s
     depends_on:
       inventree-server: { condition: service_healthy }
     healthcheck:

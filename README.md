@@ -62,9 +62,10 @@ oraz kontrolowanego serwera HTTP imitującego InvenTree dla powtarzalnych awarii
 Nie jest to test działającej instancji InvenTree. Wyniki i ograniczenia:
 [raport wydania](docs/12-release-verification.md).
 
-GitHub Actions kompiluje aplikację, uruchamia integrację/E2E i sprawdza budowę
-kontenerów oraz migracje. Definicja workflow nie oznacza zaliczonego przebiegu;
-sprawdź Actions dla konkretnego commitu.
+GitHub Actions uruchamia również osobny stos z przypiętym, prawdziwym InvenTree:
+budowę kontenerów, migracje, bootstrap, operacje stock z dowodami audytu i izolowany
+restore obu baz oraz plików. Wynik dla konkretnego commitu i granice tego testu
+zawiera [raport wydania](docs/12-release-verification.md).
 
 ## Zasady operacyjne
 

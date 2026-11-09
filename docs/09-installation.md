@@ -98,8 +98,11 @@ go z `MEDAM_MODE=production`. Jeśli `.env` już istnieje, setup jej nie przeł�
 edytuj konfigurację świadomie, zachowując sekrety i istniejące dane.
 
 Nie uruchamiaj zwykłego `docker compose up` z pominięciem wrappera w produkcji.
-Nie używaj `down -v`, `prune` ani usuwania wolumenów. Wznowienie bez migracji:
-`infrastructure/scripts/medam-compose.sh start`. Każda aktualizacja wymaga osobnego
+Nie używaj `down -v`, `prune` ani usuwania wolumenów. Wznowienie istniejących usług
+bez migracji:
+`infrastructure/scripts/medam-compose.sh up -d --no-deps --no-recreate --no-build --wait inventree-server inventree-worker api edge`.
+Panel administracyjny uruchamiaj osobno tylko wtedy, gdy jest potrzebny.
+Każda aktualizacja wymaga osobnego
 checkpointu, przeglądu migracji i okna zmian; restart nie jest procedurą aktualizacji.
 
 ## Konta, hasła i panel InvenTree

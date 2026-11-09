@@ -19,6 +19,33 @@ Brak wymaganej subskrypcji InvenTree, Booksy, panelu hostingowego lub usługi AI
 Koszty VPS, domeny, storage, transferu i ewentualnych powiadomień sprawdź bezpośrednio
 u dostawców. Nie podano ceny, której nie można potwierdzić przy zakupie.
 
+## VPS-2 2027 i dodatki OVH
+
+Oferta sprawdzona 9 listopada 2026 na [stronie OVH](https://www.ovhcloud.com/pl/vps/):
+VPS-2 2027 ma 4 vCore, 8 GB RAM i 75 GB SSD NVMe; codzienny backup z ostatnich
+24 godzin jest podany jako zawarty w cenie. Dostępność regionu, warunki backupu
+i parametry zamówienia potwierdź w koszyku. Nie sprawdzano dostępności zakupu
+i nie zamówiono żadnej usługi.
+
+Ta konfiguracja jest rozsądnym punktem startowym dla 10 ratowników, magazynu
+i gabinetu. To rekomendacja dla MVP, bez gwarancji wydajności: pomiary na zakupionym
+hoście muszą potwierdzić zapas RAM, czas operacji i miejsce na obrazy oraz kopie.
+
+| Dodatek | Rekomendacja dla tego projektu |
+| --- | --- |
+| Płatny rozszerzony backup OVH | Opcjonalny, jeśli potrzebujesz dłuższej historii lub wygodnego odzyskania całej maszyny. Potwierdź retencję i sposób restore. |
+| Snapshot VPS | Opcjonalna dodatkowa kopia przed aktualizacją; nie stanowi dowodu spójności obu baz i mediów. |
+| Oddzielny storage offsite | Wymagany przed produkcją: szyfrowany restic i spójne checkpointy opisane w dokumencie 10, dostęp awaryjny poza VPS. Preferowane oddzielne konto i region/dostawca. |
+| Dodatkowy dysk | Na start zbędny przy małym katalogu i krótkiej retencji lokalnej; zakup po pomiarze zajętości. Dysk przy tym samym VPS nie jest offsite. |
+| Plesk/cPanel, Windows, płatny certyfikat SSL, dodatkowy IP, zarządzana baza | Nie są potrzebne do przygotowanej konfiguracji Ubuntu/Docker/Caddy. |
+| Domena i zewnętrzny monitoring | Potrzebne przed produkcją; można użyć istniejącej domeny/subdomeny i odpowiedniej usługi monitoringu. |
+
+Backup dostawcy uzupełnia kopię aplikacyjną. Dzienna kopia maszyny sama nie
+potwierdza celu RPO 4 godziny ani zgodnego punktu obu baz i plików. Najpierw
+przeznacz budżet na offsite, odzyskanie kluczy i próbę restore; rozszerzony backup
+OVH można dodać według potrzeb. Włącz MFA konta OVH/DNS/storage i zachowaj
+niezależne kody odzyskiwania w menedżerze sekretów.
+
 ## Zabezpieczenia w plikach projektu
 
 - Oddzielne kontenery/bazy PostgreSQL aplikacji i InvenTree. Runtime MEDAM nie
@@ -26,7 +53,9 @@ u dostawców. Nie podano ceny, której nie można potwierdzić przy zakupie.
   posiada schemat aplikacji; runtime nie może modyfikować/usunąć audytu.
 - PostgreSQL, Redis i InvenTree bez portów hosta. Panel administracyjny wyłącznie
   przez loopback + tunel SSH/VPN. Edge jako jedyny publiczny HTTP/HTTPS.
-- Backend startuje z plikami sekretów i przechodzi na UID/GID 1000. Compose secrets
+- Backend startuje z plikami sekretów i przechodzi na UID/GID 1000 bez capabilities.
+  Proces init ma `CAP_KILL`, aby przekazać sygnał zakończenia do procesu o innym UID.
+  Compose secrets
   na jednym hoście to prywatne pliki, nie zewnętrzny vault; wymagają ochrony hosta.
 - Konto integracji InvenTree bez staff/superuser i bez hasła interaktywnego.
   Role: stock view/add/change, part view, stock location view; add lokalizacji
@@ -43,7 +72,9 @@ u dostawców. Nie podano ceny, której nie można potwierdzić przy zakupie.
   dowód wymaga uzgodnienia. Backup i restore zachowują te blokady.
 - PWA nie kolejkuje operacji offline ani nie zapisuje prywatnych API w cache.
   HTTPS i nagłówki bezpieczeństwa nie zastępują testu przeglądarek/izolacji.
-- Obrazy przypięte wersją i digestem, lockfile pnpm, brak automatycznej aktualizacji.
+- Oficjalne obrazy i obrazy bazowe przypięte wersją i digestem; aplikacja budowana
+  ze źródeł i lockfile pnpm. Jej lokalne tagi są zmienne, a checkpoint zapisuje
+  rzeczywiste image ID i commit/archiwum źródeł. Brak automatycznej aktualizacji.
   Kolejne wydanie wymaga stagingu, aktualizacji zależności i przeglądu bezpieczeństwa.
 
 Poziom roli InvenTree jest szerszy niż pojedynczy endpoint (np. stock add służy
