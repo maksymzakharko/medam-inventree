@@ -72,7 +72,7 @@ def validate(folder):
     return manifest
 
 
-def extract_archive(source, destination):
+def extract_archive(source, destination, *, public_source=False):
     destination.mkdir(mode=0o700, parents=True, exist_ok=True)
     with tarfile.open(source, 'r:gz') as archive:
         for member in members(archive):
@@ -83,8 +83,12 @@ def extract_archive(source, destination):
                 file.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
                 with archive.extractfile(member) as incoming, file.open('xb') as outgoing:
                     shutil.copyfileobj(incoming, outgoing)
-                # Private configuration stays private; preserve only executable bits.
-                file.chmod(0o700 if member.mode & 0o111 else 0o600)
+                # Versioned source has no secrets. Its bind-mounted SQL must be
+                # readable by PostgreSQL's container UID after init drops root.
+                # Host directories remain 0700; config/secrets stay private.
+                mode = (0o755 if member.mode & 0o111 else 0o644) if public_source else (
+                    0o700 if member.mode & 0o111 else 0o600)
+                file.chmod(mode)
 
 
 def extract(folder, destination):
@@ -92,7 +96,7 @@ def extract(folder, destination):
     validate(folder)
     # Atomic refusal of every existing target, including an empty directory or symlink.
     destination.mkdir(mode=0o700, parents=False, exist_ok=False)
-    extract_archive(folder / 'source.tar.gz', destination)
+    extract_archive(folder / 'source.tar.gz', destination, public_source=True)
     extract_archive(folder / 'secrets.tar.gz', destination / 'secrets')
     extract_archive(folder / 'config.tar.gz', destination / 'recovery-evidence' / 'original-config')
     for name in ('manifest.json', 'image-lock.json', 'operation-state.json', 'SHA256SUMS'):

@@ -152,6 +152,9 @@ infrastructure/scripts/restore.sh /srv/medam-download/opt/medam/backups/ID_CHECK
 ```
 
 Katalog docelowy **nie może istnieć**, również jako pusty katalog lub dowiązanie.
+Katalogi odtworzenia pozostają prywatne (`0700`), sekrety i konfiguracja `0600`.
+Wersjonowane źródła mają `0644`/`0755`, aby proces PostgreSQL po zmianie UID mógł
+odczytać podmontowane pliki inicjalizacyjne SQL. Nie zmienia to praw sekretów.
 Skrypt odmawia także, jeśli projekt ma już kontenery, wolumeny lub sieci. Każde
 niepowodzenie pozostawia nowe zasoby do kontroli; nie usuwa ich i nie próbuje
 ponownie na tym samym celu. Po zbadaniu błędu wybierz kolejną nową nazwę/katalog.

@@ -58,7 +58,11 @@ class CheckpointSafety(unittest.TestCase):
         destination = Path(self.temporary.name) / 'new-target'
         checkpoint.extract(self.folder, destination)
         self.assertEqual((destination / 'fixture.txt').read_text(), 'fixture')
-        self.assertEqual((destination / 'fixture.txt').stat().st_mode & 0o777, 0o600)
+        self.assertEqual(destination.stat().st_mode & 0o777, 0o700)
+        self.assertEqual((destination / 'fixture.txt').stat().st_mode & 0o777, 0o644)
+        self.assertEqual((destination / 'secrets/fixture.txt').stat().st_mode & 0o777, 0o600)
+        self.assertEqual((destination / 'secrets').stat().st_mode & 0o777, 0o700)
+        self.assertEqual((destination / 'recovery-evidence/original-config/fixture.txt').stat().st_mode & 0o777, 0o600)
         with self.assertRaises(FileExistsError):
             checkpoint.extract(self.folder, destination)
         self.assertEqual((destination / 'fixture.txt').read_text(), 'fixture')
