@@ -121,7 +121,8 @@ jego heartbeat; zbędne workflowy zmieniające stock nadal pozostają poza MVP.
 
 Nakładka ustawień wybiera jawnie brokera Redis: InvenTree 1.7.0 zachowuje domyślny
 klucz `orm` także po dodaniu `django_redis`, a django-q2 nadaje ORM pierwszeństwo.
-Nowa instalacja usuwa ten domyślny klucz i wymaga skonfigurowanego cache workera.
+Nowa instalacja usuwa ten domyślny klucz i definiuje alias Redis `worker` również
+dla migracji i kontroli odczytowych, które pomijają domyślny cache InvenTree.
 Nie przełączaj brokera używanej instancji z oczekującymi zadaniami. Redis usuwa
 zadanie z kolejki po pobraniu, więc sama pusta kolejka nie dowodzi zakończenia
 pracy: backup wymaga najpierw łagodnego zakończenia workera z kodem 0.
