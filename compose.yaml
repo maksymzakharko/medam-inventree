@@ -6,6 +6,8 @@ x-service: &service
     options: { max-size: "10m", max-file: "5" }
 
 x-it-env: &it-env
+  DJANGO_SETTINGS_MODULE: medam_settings
+  PYTHONPATH: /medam
   INVENTREE_DB_ENGINE: postgresql
   INVENTREE_DB_HOST: inventree-db
   INVENTREE_DB_PORT: "5432"
@@ -55,6 +57,7 @@ x-it-common: &it-common
   volumes:
     - inventree-data:/home/inventree/data
     - ./infrastructure/docker/inventree-entrypoint.sh:/medam/inventree-entrypoint.sh:ro
+    - ./infrastructure/docker/medam_settings.py:/medam/medam_settings.py:ro
     - ./infrastructure/scripts/inventree-bootstrap.py:/medam/inventree-bootstrap.py:ro
   secrets: [inventree_db_password, inventree_secret_key]
   networks: [inventree-api, inventree-data]

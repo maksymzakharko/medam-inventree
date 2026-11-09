@@ -87,3 +87,18 @@ pluginów oraz automatyczne sprawdzanie kursów/aktualizacji przez global_settin
 Wymusza też włączony audyt stock i brak automatycznego usuwania dowodów audytu.
 Retencja pozostaje oddzielną zatwierdzaną polityką. Nie wyłącza to workera ani
 jego heartbeat; zbędne workflowy zmieniające stock nadal pozostają poza MVP.
+
+## Korelacja audytu i zaufanie do identyfikatora żądania
+
+InvenTree 1.7.0 korzysta z django-structlog 11, które domyślnie ignoruje przychodzący
+`X-Request-ID`. Skutkiem był brak możliwości znalezienia dowodu przyjęcia po UUID.
+Plik `infrastructure/docker/medam_settings.py` stanowi wyłącznie nakładkę ustawień
+wewnętrznego Django InvenTree: włącza jawne zaufanie do identyfikatora żądania.
+Własny backend pozostaje Node.js/Fastify.
+
+Ta konfiguracja obowiązuje przy prywatnym API InvenTree: UUID wysyła uwierzytelniona
+usługa Fastify, a potwierdzenie wymaga również zgodnego aktora, zasobu i ilości.
+Sam CID nie dowodzi ani nie deduplikuje operacji. Nie udostępniaj administracyjnego
+API InvenTree ratownikom ani publicznego proxy tych endpointów. Konfiguracja dotyczy
+serwera, workera i narzędzi bootstrap, a rzeczywisty test CI sprawdza zgodność CID.
+Źródło zmiany: https://github.com/jrobichaud/django-structlog/blob/11.0.0/docs/changelog.rst.

@@ -41,7 +41,7 @@ test('administrator receives a lot, transfers stock, records a loss and exports 
   await page.screenshot({ path: testInfo.outputPath('administrator-policy.png'), fullPage: true });
   await policy.getByRole('button', { name: 'Zamknij', exact: true }).click();
   const configuredStock = page.locator('.stock-row').filter({ hasText: 'TEST-LOT-00' });
-  await expect(configuredStock.getByText('Minimum: 120,5 amp.', { exact: true })).toBeVisible();
+  await expect(configuredStock.getByText('Minimum: 120,5 piece', { exact: true })).toBeVisible();
   await expect(configuredStock.getByText('Niski stan', { exact: true })).toBeVisible();
   await navigate(page, 'movements');
   await page.getByLabel('Magazyn przyjmujący', { exact: true }).selectOption('101');
@@ -72,7 +72,7 @@ test('administrator receives a lot, transfers stock, records a loss and exports 
   await navigate(page, 'stock');
   await page.getByRole('combobox', { name: 'Wybierz magazyn', exact: true }).selectOption('100');
   const source = page.locator('.stock-row').filter({ hasText: 'TEST-LOT-00' });
-  await expect(source.locator('.stock-quantity strong')).toHaveText('93 amp.');
+  await expect(source.locator('.stock-quantity strong')).toHaveText('93 piece');
   await page.getByRole('combobox', { name: 'Wybierz magazyn', exact: true }).selectOption('101');
   await expect(page.getByText('ADMIN-LOT-TEST', { exact: true })).toBeVisible();
   await expect(page.getByText('TEST-LOT-00', { exact: true })).toBeVisible();

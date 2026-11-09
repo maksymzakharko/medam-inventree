@@ -55,7 +55,7 @@ jobs:
 
   container-build:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v4
       - name: Validate local configuration
@@ -83,7 +83,7 @@ jobs:
             -v "$PWD/secrets:/medam-secrets:rw" \
             inventree-server python /medam/inventree-bootstrap.py
       - name: Start API and PWA
-        run: infrastructure/scripts/medam-compose.sh up -d --wait api edge
+        run: infrastructure/scripts/medam-compose.sh up -d --no-deps --wait api edge
       - name: Verify actual upstream version and public application
         run: |
           infrastructure/scripts/medam-compose.sh exec -T api node --input-type=module -e \
@@ -103,17 +103,35 @@ jobs:
             -v "$PWD/tests/contract/inventree-live.mjs:/app/inventree-live.mjs:ro" \
             -v "$PWD/secrets/contract-fixture.json:/app/contract-fixture.json:ro" \
             app-cli inventree-live.mjs
+      - name: Rehearse checkpoint and isolated restore
+        timeout-minutes: 15
+        env:
+          CI: "true"
+          MEDAM_RESTORE_TEST: ci-only-isolated
+        run: bash tests/contract/verify-restore.sh
       - name: Sanitized container diagnostics
         if: failure()
         run: |
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/tests/contract/seed-inventree.py:/medam/seed-contract.py:ro" \
+            inventree-server python /medam/seed-contract.py --diagnose || true
           python3 - <<'PY'
           from pathlib import Path
           import subprocess
-          result=subprocess.run(['infrastructure/scripts/medam-compose.sh','logs','--no-color','--tail=60'],capture_output=True,text=True)
-          log=result.stdout+result.stderr
-          for path in Path('secrets').glob('*'):
-              if path.is_file():
-                  value=path.read_text().strip()
-                  if len(value)>7: log=log.replace(value,'[REDACTED]')
+          commands=[['infrastructure/scripts/medam-compose.sh','logs','--no-color','--tail=60']]
+          target=Path('/tmp/medam-restore-ci')
+          if target.is_dir() and not target.is_symlink() and (target/'.env').is_file():
+              commands.append(['docker','compose','--project-directory',str(target),'--env-file',str(target/'.env'),
+                  '-f',str(target/'compose.yaml'),'-f',str(target/'compose.restore.yaml'),'logs','--no-color','--tail=60'])
+          log=''
+          for command in commands:
+              result=subprocess.run(command,capture_output=True,text=True,timeout=60)
+              log+=result.stdout+result.stderr
+          for directory in (Path('secrets'),target/'secrets'):
+              for path in directory.glob('*'):
+                  if path.is_file():
+                      value=path.read_text().strip()
+                      if len(value)>7: log=log.replace(value,'[REDACTED]')
           print(log[-30000:])
           PY

@@ -15,6 +15,24 @@ from django.db import transaction
 from part.models import Part
 from stock.models import StockLocation
 
+if '--diagnose' in sys.argv:
+    from importlib.metadata import version
+    from django.conf import settings
+    from django.contrib.auth import get_user_model
+    from audit.models import AuditLogEntry
+    from audit.permissions import user_can_view_audit_model
+    from stock.models import StockItem
+    user = get_user_model().objects.filter(username='medam-service').first()
+    print(json.dumps({
+        'structlogVersion': version('django-structlog'),
+        'trustRequestId': getattr(settings, 'DJANGO_STRUCTLOG_TRUST_UPSTREAM_REQUEST_ID', False),
+        'mayReadStockAudit': bool(user and user_can_view_audit_model(user, StockItem)),
+        'stockEvents': list(AuditLogEntry.objects.filter(
+            content_type__app_label='stock', content_type__model='stockitem'
+        ).order_by('-pk').values('pk', 'cid', 'event_type', 'object_pk', 'actor_id')[:20]),
+    }, default=str))
+    raise SystemExit(0)
+
 with transaction.atomic():
     marker = str(uuid.uuid4())
     part = Part.objects.create(name='MEDAM CI ' + marker, units='piece', active=True)
