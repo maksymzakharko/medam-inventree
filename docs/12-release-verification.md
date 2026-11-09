@@ -1,6 +1,9 @@
-# Weryfikacja wydania 0.1.0 — 8 listopada 2026
+# Weryfikacja wydania 0.1.0 — 9 listopada 2026
 
-Kod: gałąź `feat/working-mvp` repozytorium `maksymzakharko/medam-inventree`.
+Kod: gałąź `feat/working-mvp`, sprawdzony commit
+[`1821f2d5d659c07f7db5a4576c04442075d2991b`](https://github.com/maksymzakharko/medam-inventree/commit/1821f2d5d659c07f7db5a4576c04442075d2991b).
+[GitHub Actions #19](https://github.com/maksymzakharko/medam-inventree/actions/runs/42579067148)
+zakończyło się sukcesem: oba zadania `application` i `container-build` zaliczone.
 Raport dotyczy implementacji do lokalnych testów i pilotażu. Nie potwierdza
 wdrożenia produkcyjnego ani pełnego odbioru na OVH.
 
@@ -9,17 +12,22 @@ wdrożenia produkcyjnego ani pełnego odbioru na OVH.
 | Sprawdzenie | Wynik i zakres |
 | --- | --- |
 | Kompilacja | `pnpm build` zaliczone: shared, Fastify API i React/Vite |
-| TypeScript | `pnpm typecheck` zaliczone, Node 26.13.0 / pnpm 12.18.0 |
+| TypeScript | Lokalne `pnpm typecheck` zaliczone; kompilacja ponowiona w CI, Node 26.13.0 / pnpm 12.18.0 |
 | Pakiet produkcyjny | `pnpm --filter @medam/api deploy --prod …` oraz uruchomienie CLI z osobnego pakietu zaliczone; natywny Argon2 i zależności rozwiązywane |
 | Integracja/bezpieczeństwo | **43/43 zaliczone**, 6 plików, 0 pominiętych, prawdziwy PostgreSQL 17.11 |
 | Przeglądarka | **10/10 zaliczone**, Chromium 158 desktop i emulacja Pixel 7, bez pominięć i flaky retry |
 | PWA | Zasoby PNG 192/512/180 px, manifest, brak prywatnego API w cache, zachowanie offline i ponowne otwarcie strony sprawdzone |
 | Wygląd | Zrzuty desktop/mobile obejrzane, brak poziomego overflow, nawigacja i formularze sprawdzone w przeglądarce |
-| Zależności produkcyjne | `pnpm audit --prod`: 0 znanych zgłoszeń info/low/moderate/high/critical w odpowiedzi rejestru z dnia audytu |
-| Infrastruktura offline | 16 testów bezpieczeństwa archiwów/checkpointu i orkiestracji backupu zaliczone; prawdziwe tar/SHA, kontrolowany Docker/dump double; shell/Python syntax i konfiguracje Compose lokalna/produkcja/restore zaliczone bez demona |
+| Zależności produkcyjne | `pnpm audit --prod` z 8 listopada: 0 znanych zgłoszeń info/low/moderate/high/critical; wynik dotyczy tej daty i lockfile |
+| Bezpieczeństwo infrastruktury | **32/32 zaliczone** lokalnie i w CI: archiwa, SHA, ścieżki, uprawnienia, broker i orkiestracja backupu; część testów korzysta z kontrolowanego Docker/dump double |
+| Prawdziwy Compose | Budowa API/PWA, migracje, PostgreSQL, Redis, InvenTree 1.7.0/API570 i worker zaliczone; trzy konfiguracje Caddy przechodzą parser |
+| Pierwsza instalacja | Administrator CLI, 12 lokalizacji/mapowań, ponowna synchronizacja bez duplikatów, finalizacja uprawnień, rzeczywisty broker Redis i prywatny panel przez loopback zaliczone |
+| Prawdziwy stock/audyt | Sześć operacji na InvenTree, w tym korelacja CID i wykrycie przycięcia rozchodu; szczegóły poniżej |
+| Pełny checkpoint i izolowany restore | Obie bazy i dane InvenTree odtworzone na nowych wolumenach; porównania stock/LOT/EXP, migracji i pliku mediów, readiness i HTTP/401 zaliczone; **48,365 s** dla małego lokalnego zestawu |
 | Odtworzenie aplikacyjnej bazy | `pg_dump` custom → oddzielna baza PostgreSQL; wszystkie **13 tabel**, w tym migracje, zgodne; szczegóły poniżej |
 
 Dowody maszynowe: [podsumowanie](evidence/release-test-summary.json),
+[CI i izolowany restore](evidence/ci-runtime-restore.json),
 [odtworzenie bazy](evidence/application-db-restore.json).
 Testy źródłowe są w `tests/integration`, `tests/security` i `tests/e2e`.
 
@@ -47,6 +55,40 @@ InvenTree w tych testach jest **kontrolowanym serwerem HTTP tylko dla testów**,
 co umożliwia wymuszenie awarii, przycinania ilości i utraty odpowiedzi. Nie jest
 to drugi silnik zapasów w aplikacji ani dowód działania faktycznej instancji InvenTree.
 
+## Prawdziwy InvenTree i odtworzona aplikacja
+
+Oddzielne zadanie CI uruchamia przypięty oficjalny obraz, rzeczywiste bazy i Redis.
+Konto integracji nie ma staff/superuser ani DELETE; po bootstrapie traci prawo
+tworzenia lokalizacji. Skrypt tworzy administratora przez rzeczywisty CLI,
+synchronizuje 12 magazynów dwa razy i sprawdza brak nowych lokalizacji/operacji
+przy powtórzeniu. Hasło i tokeny nie trafiają do logu ani dowodów w repozytorium.
+
+Test kontraktu korzysta ze skompilowanego klienta i weryfikatora dowodów MEDAM:
+
+| Operacja | Potwierdzony efekt i wynik |
+| --- | --- |
+| Przyjęcie | 5 sztuk, zgodny CID/aktor/partia, `SUCCEEDED` |
+| Rozchód | 2 sztuki, `SUCCEEDED` |
+| Częściowy transfer | 1 sztuka, dowód podziału i nowej pozycji, `SUCCEEDED` |
+| Zwiększenie | 1 sztuka, `SUCCEEDED` |
+| Pełny transfer | 3 sztuki, `SUCCEEDED` |
+| Przycięcie rozchodu | Żądane 20, rzeczywiście 3; prawidłowo `DISCREPANCY`, pozycja z ilością 0 zachowana |
+
+2026-11-09 07:28–07:29 UTC: checkpoint zatrzymał łagodnie autorów zapisów,
+potwierdził pusty rzeczywisty broker, wykonał oba dumpy, archiwa i sumy oraz wznowił
+usługi. Restore utworzył nowy projekt, sieci i wolumeny, odtworzył obie bazy i dane
+InvenTree bez migracji lub ponawiania operacji. Skrypt unieważnia sesje/linki resetu
+w kopii i zmienia sekret sesji. Worker i panel kopii pozostały wyłączone.
+
+Porównania objęły wszystkie wiersze testowego stock z LOT/EXP i ilościami, hashe
+migracji Drizzle oraz kontrolny plik mediów. Odtworzone API osiągnęło gotowość
+zapisów, PWA odpowiedziało przez loopback 18080, a API bez sesji zwróciło 401.
+
+**48,365 s** liczono od rozpoczęcia lokalnego restore do zakończenia porównań
+i kontroli HTTP. Obrazy były już na tym samym runnerze, a dane były małym zestawem
+testowym. Nie jest to czas odzyskania z offsite, pomiar RPO/RTO hosta ani wynik
+obciążenia produkcyjnego. Publiczne dowody nie zawierają dumpów lub sekretów.
+
 ## Odtworzenie PostgreSQL aplikacji
 
 2026-11-08 20:47 UTC: dump bazy `medam_test` klientem PostgreSQL 17.11 i restore
@@ -60,26 +102,16 @@ osobno potwierdzono metadane migracji. **Nie jest to pomiar RTO całego systemu.
 Obie bazy były oddzielnymi bazami tego samego lokalnego serwera testowego.
 Nie wykonano w tym sprawdzeniu offsite, odtwarzania InvenTree, mediów ani VPS.
 
-## Ograniczenia infrastruktury i kolejne bramki
+## Kolejne bramki na zakupionym VPS
 
-Próba pobrania oficjalnego obrazu InvenTree wyczerpała mały dysk środowiska Codex
-przy sterowniku Docker `vfs`. Import płaskiego systemu plików obrazu udał się,
-ale pełny start przerwał brak miejsca; po odtworzeniu środowiska daemon Docker
-był niedostępny. Nie zmieniano sterownika/uprawnień demona ani nie usuwano danych
-użytkownika. Dalsze testy aplikacji uruchomiono na natywnym PostgreSQL 17.11.
+Kod i lokalny restore są sprawdzone. VPS jeszcze nie został kupiony; pozostają:
 
-Dlatego **niezaliczone lokalnie** pozostają:
-
-- pełny build/start docelowego Compose, konto serwisowe i uprawnienia w żywym InvenTree;
-- rzeczywiste remove/receipt/transfer i `cid`/audit na przypiętym obrazie;
 - HTTPS/domena, zewnętrzna izolacja portów, reboot/autostart i rzeczywiste telefony;
 - kompletna zaszyfrowana kopia offsite obu baz/plików i restore na oddzielnym hoście;
 - rzeczywiste RPO/RTO, obciążenie i końcowy odbiór właściciela.
 
-Workflow CI zawiera build kontenerów, migracje, start prawdziwego InvenTree/workera,
-bootstrap konta integracji i sprawdzenie gotowości API/PWA. Jego wynik należy
-potwierdzić dla opublikowanego commitu; sama definicja nie jest dowodem sukcesu.
-Lokalne 43+10 testów nie zastępują wymienionych bramek.
+Przebieg CI potwierdza wyłącznie zakres wskazany powyżej. Nie zastępuje odbioru
+hosta, testu z niezależnej lokalizacji ani odzyskania po utracie całego VPS.
 
 Dokumenty 09–11 opisują instalację, backup/restore i zabezpieczenia. Przed użyciem
-rzeczywistych zapasów konieczny jest pilotaż dwóch kont i zaliczenie pełnego restore.
+rzeczywistych zapasów konieczny jest pilotaż dwóch kont i restore z docelowego offsite.

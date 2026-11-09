@@ -1,6 +1,6 @@
 {
-  "recordedAtUtc": "2026-11-08T20:52:19.830022+00:00",
-  "scope": "Local app verification with real PostgreSQL17.11 and test-only HTTP InvenTree transport double. No live InvenTree/OVH test.",
+  "recordedAtUtc": "2026-11-09T07:33:10.829729+00:00",
+  "scope": "Application tests use real PostgreSQL and a controlled HTTP InvenTree double. Separate CI uses the pinned real InvenTree, Redis, full checkpoint and same-runner isolated logical restore. No OVH/offsite/host-recovery test.",
   "node": "26.13.0",
   "pnpm": "12.18.0",
   "integration": {
@@ -8,16 +8,15 @@
     "numPassedTests": 43,
     "numFailedTests": 0,
     "numPendingTests": 0,
-    "success": true,
-    "startTime": 1794170683283
+    "success": true
   },
   "browser": {
     "expected": 10,
     "skipped": 0,
     "unexpected": 0,
     "flaky": 0,
-    "duration": 25700,
-    "evidence": "Final local Playwright run after policy editor: 10/10 desktop+Pixel7, reported 25.7s. Original 8-case run was superseded."
+    "duration": 25900,
+    "evidence": "GitHub Actions application job: 10/10 desktop+Pixel7, 25.9s; no skipped or flaky retry."
   },
   "productionDependencies": {
     "vulnerabilities": {
@@ -30,11 +29,21 @@
     "dependencies": 89,
     "devDependencies": 0,
     "optionalDependencies": 15,
-    "totalDependencies": 104
+    "totalDependencies": 104,
+    "auditedDateUtc": "2026-11-08"
   },
   "infrastructureSafety": {
-    "tests": 16,
-    "passed": 16,
-    "scope": "Real archive/checksum safety and controlled Docker/backup transport double; no full live Docker restore."
+    "tests": 32,
+    "passed": 32,
+    "scope": "Archive/checksum, private restore permissions, strict broker/read-only checks and controlled Docker/backup orchestration tests; separate actual runtime restore evidence below."
+  },
+  "initialLocalRecordedAtUtc": "2026-11-08T20:52:19.830022+00:00",
+  "ci": {
+    "sourceCommit": "1821f2d5d659c07f7db5a4576c04442075d2991b",
+    "url": "https://github.com/maksymzakharko/medam-inventree/actions/runs/42579067148",
+    "conclusion": "success",
+    "applicationJobId": 129033264645,
+    "containerJobId": 129033264357,
+    "runtimeEvidence": "ci-runtime-restore.json"
   }
 }

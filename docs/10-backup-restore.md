@@ -2,8 +2,10 @@
 
 Cel do potwierdzenia pomiarem: RPO 4 godziny i RTO 4 godziny. Backup co 3 godziny
 pozostawia godzinę na checkpoint i upload. Wiek danych liczymy od `frozenAtUtc`,
-a nie zakończenia wysyłania. Nie wykonano jeszcze pełnej próby Docker/restore ani
-backupowania rzeczywistej instancji; skrypty nie stanowią dowodu osiągnięcia celów.
+a nie zakończenia wysyłania. W CI zaliczono checkpoint prawdziwego InvenTree i
+izolowany restore obu baz/plików na tym samym runnerze: 48,365 s dla małego zestawu,
+z obrazami już na miejscu. [Raport i dowody](12-release-verification.md) opisują zakres.
+Offsite, utrata hosta i docelowe RPO/RTO nadal wymagają pomiaru na zakupionym środowisku.
 
 ## Konfiguracja szyfrowanego offsite
 

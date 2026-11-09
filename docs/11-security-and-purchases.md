@@ -60,7 +60,8 @@ niezależne kody odzyskiwania w menedżerze sekretów.
 - Konto integracji InvenTree bez staff/superuser i bez hasła interaktywnego.
   Role: stock view/add/change, part view, stock location view; add lokalizacji
   wyłącznie podczas bootstrapu, odbierane finalizacją. Stock delete jest wyłączone.
-  Minimalne role trzeba potwierdzić rzeczywistymi testami wydania 1.7.0/API570.
+  Role potwierdzono rzeczywistym testem 1.7.0/API570 w [raporcie wydania](12-release-verification.md);
+  ponowna weryfikacja jest wymagana po zmianie wersji lub konfiguracji uprawnień.
 - Audyt InvenTree włączony, automatyczne usuwanie wyłączone; monitor kontroluje
   ustawienia i token. Token ważny 365 dni; ostrzeżenie przed wygaśnięciem (30 dni).
   Kontrolowana rotacja wymaga maintenance, zmiany prywatnego pliku i odtworzenia API;

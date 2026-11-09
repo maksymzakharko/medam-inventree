@@ -13,4 +13,6 @@ wersją oraz digestem. Opcjonalny BuildKit secret `proxy_ca` dodaje zaufane CA
 wyłącznie podczas pobierania zależności; nie wyłącza weryfikacji TLS.
 
 Instalacja: [docs/09-installation.md](../../docs/09-installation.md).
-Nie wykonano pełnego build/start Compose w obecnym środowisku (niedostępny daemon).
+Pełny build/start, bootstrap, prawdziwy kontrakt stock/audit i izolowany restore
+zaliczono w GitHub Actions. Commit, przebieg i ograniczenia:
+[raport wydania](../../docs/12-release-verification.md).
