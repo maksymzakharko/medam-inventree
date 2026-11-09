@@ -79,7 +79,7 @@ stop_writer admin-proxy
 stop_writer api
 stop_writer inventree-server
 stop_writer inventree-worker
-timeout 180 "$compose" run --rm --no-deps -T inventree-server python -c 'import os,sys;sys.path.insert(0,"/home/inventree/src/backend/InvenTree");os.environ.setdefault("DJANGO_SETTINGS_MODULE","InvenTree.settings");import django;django.setup();from django_q.brokers import get_broker;b=get_broker();pending=b.queue_size();locked=b.lock_size();print("Pending/locked worker jobs:",pending,locked);sys.exit(0 if pending == 0 and locked == 0 else 1)' >/dev/null
+timeout 180 "$compose" run --rm --no-deps -T inventree-server python /medam/check-broker-drained.py
 # PREPARED/DISPATCHING/UNCERTAIN gates are preserved, never cleared.
 frozen_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 timeout 900 "$compose" exec -T app-db pg_dump -U postgres -d medam_app --format=custom > "$staging/app.dump"

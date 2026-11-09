@@ -1,7 +1,8 @@
 name: Verify MEDAM
 on:
   push:
-    branches: [feat/working-mvp, main]
+    # Pull requests cover feature branches without a duplicate push run.
+    branches: [main]
     paths-ignore: ['docs/**', 'README.md']
   pull_request:
     paths-ignore: ['docs/**', 'README.md']

@@ -44,7 +44,7 @@ if name=='medam-compose.sh':
         if arguments[1:8] != required: sys.exit(30)
         if scenario=='resume-failed': sys.exit(31)
     elif command=='run':
-        if 'queue_size()' not in arguments[-1] or 'lock_size()' not in arguments[-1]: sys.exit(29)
+        if arguments[-2:] != ['python','/medam/check-broker-drained.py']: sys.exit(29)
         if scenario in ('pending-jobs','locked-jobs'): sys.exit(18)
     elif command=='exec':
         service, tool=arguments[2:4]

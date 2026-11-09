@@ -119,6 +119,17 @@ Wymusza też włączony audyt stock i brak automatycznego usuwania dowodów audy
 Retencja pozostaje oddzielną zatwierdzaną polityką. Nie wyłącza to workera ani
 jego heartbeat; zbędne workflowy zmieniające stock nadal pozostają poza MVP.
 
+Nakładka ustawień wybiera jawnie brokera Redis: InvenTree 1.7.0 zachowuje domyślny
+klucz `orm` także po dodaniu `django_redis`, a django-q2 nadaje ORM pierwszeństwo.
+Nowa instalacja usuwa ten domyślny klucz i wymaga skonfigurowanego cache workera.
+Nie przełączaj brokera używanej instancji z oczekującymi zadaniami. Redis usuwa
+zadanie z kolejki po pobraniu, więc sama pusta kolejka nie dowodzi zakończenia
+pracy: backup wymaga najpierw łagodnego zakończenia workera z kodem 0.
+Kontrola brokera działa w kontekście `check` i przy PostgreSQL tylko do odczytu,
+aby uruchomienie diagnostyki nie tworzyło nowych zadań przez hooki Django.
+Źródła: [konfiguracja InvenTree](https://github.com/inventree/InvenTree/blob/1.7.0/src/backend/InvenTree/InvenTree/setting/worker.py),
+[wybór brokera django-q2](https://github.com/django-q2/django-q2/blob/v1.11.1/django_q/brokers/__init__.py).
+
 ## Korelacja audytu i zaufanie do identyfikatora żądania
 
 InvenTree 1.7.0 korzysta z django-structlog 11, które domyślnie ignoruje przychodzący

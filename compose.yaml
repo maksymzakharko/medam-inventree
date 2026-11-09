@@ -58,6 +58,7 @@ x-it-common: &it-common
     - inventree-data:/home/inventree/data
     - ./infrastructure/docker/inventree-entrypoint.sh:/medam/inventree-entrypoint.sh:ro
     - ./infrastructure/docker/medam_settings.py:/medam/medam_settings.py:ro
+    - ./infrastructure/scripts/inventree-broker-check.py:/medam/check-broker-drained.py:ro
     - ./infrastructure/scripts/inventree-bootstrap.py:/medam/inventree-bootstrap.py:ro
   secrets: [inventree_db_password, inventree_secret_key]
   networks: [inventree-api, inventree-data]

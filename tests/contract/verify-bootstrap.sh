@@ -108,9 +108,12 @@ import django
 django.setup()
 from django.contrib.auth import get_user_model
 from django.db import connection
+from django_q.brokers import get_broker
+from django_q.brokers.redis_broker import Redis
 
 with connection.cursor() as cursor:
     cursor.execute('SET default_transaction_read_only=on')
+assert type(get_broker()) is Redis, 'The configured Redis broker must be selected'
 user = get_user_model().objects.get(username='medam-service')
 assert user.is_active and not user.is_staff and not user.is_superuser
 assert not user.has_usable_password() and not user.user_permissions.exists()

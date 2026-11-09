@@ -107,19 +107,22 @@ if containers=$(timeout 20 "$compose" ps --all -q 2>/dev/null); then
   else issue database critical 'Nie można odczytać metryk bazy aplikacji.'; fi
   # The official read-only check context skips ready-phase writes; PostgreSQL also enforces read-only transactions.
   if ((!maintenance)); then
-    if it_metrics=$(timeout 25 "$compose" exec -T inventree-server python -c 'import datetime,json,os,sys;from pathlib import Path;os.environ["INVENTREE_DB_PASSWORD"]=Path("/run/secrets/inventree_db_password").read_text().strip();os.environ["PGOPTIONS"]="-c default_transaction_read_only=on";sys.argv=["manage.py","check"];sys.path.insert(0,"/home/inventree/src/backend/InvenTree");os.environ.setdefault("DJANGO_SETTINGS_MODULE","InvenTree.settings");import django;django.setup();from django_q.brokers import get_broker;from common.models import InvenTreeSetting;from users.models import ApiToken;b=get_broker();tokens=list(ApiToken.objects.filter(user__username="medam-service",user__is_active=True,name="MEDAM backend",revoked=False));days=min(((t.expiry-datetime.date.today()).days for t in tokens),default=-1);print(json.dumps({"pending":b.queue_size(),"locked":b.lock_size(),"audit":InvenTreeSetting.get_setting("AUDIT_LOG_ENABLED",False,create=False,cache=False),"autoDeleteAudit":InvenTreeSetting.get_setting("AUDIT_LOG_DELETE_OLD_ENTRIES",False,create=False,cache=False),"tokenCount":len(tokens),"tokenDays":days}))' 2>/dev/null); then
+    if it_metrics=$(timeout 25 "$compose" exec -T inventree-server python -c 'import datetime,json,os,sys;from pathlib import Path;os.environ["INVENTREE_DB_PASSWORD"]=Path("/run/secrets/inventree_db_password").read_text().strip();os.environ["PGOPTIONS"]="-c default_transaction_read_only=on";sys.argv=["manage.py","check"];sys.path.insert(0,"/home/inventree/src/backend/InvenTree");os.environ.setdefault("DJANGO_SETTINGS_MODULE","InvenTree.settings");import django;django.setup();from django_q.brokers import get_broker;from common.models import InvenTreeSetting;from users.models import ApiToken;b=get_broker();tokens=list(ApiToken.objects.filter(user__username="medam-service",user__is_active=True,name="MEDAM backend",revoked=False));days=min(((t.expiry-datetime.date.today()).days for t in tokens),default=-1);print(json.dumps({"broker":type(b).__module__+"."+type(b).__qualname__,"pending":b.queue_size(),"locked":b.lock_size(),"audit":InvenTreeSetting.get_setting("AUDIT_LOG_ENABLED",False,create=False,cache=False),"autoDeleteAudit":InvenTreeSetting.get_setting("AUDIT_LOG_DELETE_OLD_ENTRIES",False,create=False,cache=False),"tokenCount":len(tokens),"tokenDays":days}))' 2>/dev/null); then
       if ! printf '%s' "$it_metrics" | python3 -c '
 import json,sys
 try:
     m=json.load(sys.stdin)
-    for key in ("pending","locked","tokenCount","tokenDays"):
+    for key in ("pending","tokenCount","tokenDays"):
         if not isinstance(m[key],int): raise ValueError()
+    if m["locked"] is None:
+        if m["broker"] != "django_q.brokers.redis_broker.Redis": raise ValueError()
+    elif not isinstance(m["locked"],int): raise ValueError()
 except (KeyError,ValueError,TypeError): sys.exit(1)
 out=open(sys.argv[1],"a")
 def issue(key,severity,text): out.write(key+"\t"+severity+"\t"+text+"\n")
 if m["pending"]>=100: issue("queue","critical","Kolejka InvenTree zawiera co najmniej 100 zadań.")
 elif m["pending"]>=10: issue("queue","warning","Kolejka InvenTree zawiera co najmniej 10 zadań.")
-if m["locked"]>=10: issue("queue-locked","warning","InvenTree ma co najmniej 10 zablokowanych zadań.")
+if m["locked"] is not None and m["locked"]>=10: issue("queue-locked","warning","InvenTree ma co najmniej 10 zablokowanych zadań.")
 if m["audit"] is not True: issue("audit","critical","Audyt InvenTree jest wyłączony; wstrzymaj zapisy i wyjaśnij konfigurację.")
 if m["autoDeleteAudit"] is not False: issue("audit-retention","critical","Automatyczne usuwanie audytu InvenTree jest włączone.")
 if m["tokenCount"]!=1 or m["tokenDays"]<0: issue("token","critical","Brak jednej aktywnej, niewygasłej tożsamości tokenu integracji.")
