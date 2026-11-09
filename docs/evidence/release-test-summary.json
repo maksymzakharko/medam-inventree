@@ -12,12 +12,12 @@
     "startTime": 1794170683283
   },
   "browser": {
-    "startTime": "2026-11-08T20:45:00.841Z",
-    "duration": 18688.289999999997,
-    "expected": 8,
+    "expected": 10,
     "skipped": 0,
     "unexpected": 0,
-    "flaky": 0
+    "flaky": 0,
+    "duration": 25700,
+    "evidence": "Final local Playwright run after policy editor: 10/10 desktop+Pixel7, reported 25.7s. Original 8-case run was superseded."
   },
   "productionDependencies": {
     "vulnerabilities": {
@@ -31,5 +31,10 @@
     "devDependencies": 0,
     "optionalDependencies": 15,
     "totalDependencies": 104
+  },
+  "infrastructureSafety": {
+    "tests": 16,
+    "passed": 16,
+    "scope": "Real archive/checksum safety and controlled Docker/backup transport double; no full live Docker restore."
   }
 }

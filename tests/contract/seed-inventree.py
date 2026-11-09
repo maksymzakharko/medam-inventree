@@ -17,7 +17,7 @@ from stock.models import StockLocation
 
 with transaction.atomic():
     marker = str(uuid.uuid4())
-    part = Part.objects.create(name='MEDAM CI ' + marker, units='amp.', active=True)
+    part = Part.objects.create(name='MEDAM CI ' + marker, units='piece', active=True)
     source = StockLocation.objects.create(name='CI source ' + marker, structural=False, external=False)
     destination = StockLocation.objects.create(name='CI destination ' + marker, structural=False, external=False)
     result = {'partId': part.pk, 'sourceId': source.pk, 'destinationId': destination.pk}

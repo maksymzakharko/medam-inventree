@@ -131,6 +131,12 @@ Na swoim komputerze zestaw tunel do zatwierdzonego hosta:
 ssh -N -L 8090:127.0.0.1:8090 UZYTKOWNIK@HOST_VPS
 ```
 
+Dla ewidencji całych ampułek/opakowań wybierz zatwierdzoną jednostkę bazową.
+InvenTree 1.7.0 rozpoznaje `piece` jako sztukę; `amp.` nie jest poprawną jednostką
+fizyczną. W nazwie produktu można doprecyzować „ampułka”, zachowując ilości jako
+liczbę sztuk i krok 1. Nie używaj `amp` (amper) i nie zakładaj automatycznych
+przeliczeń opakowań, ml ani dawki. Wzór katalogu: [products.csv](templates/products.csv).
+
 Panel: `http://localhost:8090`. Użyj go do przygotowania katalogu leków i pierwszych
 partii LOT/EXP w kontrolowanym maintenance. Rutynowe zapisy po uruchomieniu zespołu
 wykonuje MEDAM. Ratownicy nie otrzymują kont InvenTree. Wyłącz dodatkowe workflowy

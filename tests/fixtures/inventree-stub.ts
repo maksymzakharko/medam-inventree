@@ -128,8 +128,8 @@ export class InventreeStub {
       if (method === 'GET' && path === '/api/') return this.json(res, { server: 'InvenTree', version: '1.7.0', apiVersion: 570, api_version: 570 });
       if (method === 'GET' && path === '/api/user/me/') return this.json(res, { pk: 99, username: 'medam-service' });
       if (method === 'GET' && path === '/api/stock/status/') return this.json(res, [{ key: 10, value: 'OK' }, { key: 55, value: 'Damaged' }]);
-      if (method === 'GET' && path === '/api/part/1/') return this.json(res, { pk: 1, name: 'Witamina C TEST', units: 'amp.', active: true, minimum_stock: '5' });
-      if (method === 'GET' && path === '/api/part/') return this.page(res, url, [{ pk: 1, name: 'Witamina C TEST', units: 'amp.', active: true, minimum_stock: '5' }]);
+      if (method === 'GET' && path === '/api/part/1/') return this.json(res, { pk: 1, name: 'Witamina C TEST', units: 'piece', active: true, minimum_stock: '5' });
+      if (method === 'GET' && path === '/api/part/') return this.page(res, url, [{ pk: 1, name: 'Witamina C TEST', units: 'piece', active: true, minimum_stock: '5' }]);
       if (method === 'GET' && path === '/api/stock/location/') return this.page(res, url, Array.from({ length: 12 }, (_, i) => ({ pk: 100 + i, name: `MAG-${String(i).padStart(2, '0')}`, description: i === 0 ? 'Główny' : i === 11 ? 'Gabinet' : `Ratownik ${i}`, parent: null, structural: false, external: false })));
       if (method === 'GET' && /^\/api\/stock\/location\/\d+\/$/.test(path)) {
         const id = Number(path.split('/')[4]);

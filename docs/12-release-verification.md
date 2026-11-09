@@ -12,7 +12,7 @@ wdrożenia produkcyjnego ani pełnego odbioru na OVH.
 | TypeScript | `pnpm typecheck` zaliczone, Node 26.13.0 / pnpm 12.18.0 |
 | Pakiet produkcyjny | `pnpm --filter @medam/api deploy --prod …` oraz uruchomienie CLI z osobnego pakietu zaliczone; natywny Argon2 i zależności rozwiązywane |
 | Integracja/bezpieczeństwo | **43/43 zaliczone**, 6 plików, 0 pominiętych, prawdziwy PostgreSQL 17.11 |
-| Przeglądarka | **8/8 zaliczone**, Chromium 158 desktop i emulacja Pixel 7, bez pominięć i flaky retry |
+| Przeglądarka | **10/10 zaliczone**, Chromium 158 desktop i emulacja Pixel 7, bez pominięć i flaky retry |
 | PWA | Zasoby PNG 192/512/180 px, manifest, brak prywatnego API w cache, zachowanie offline i ponowne otwarcie strony sprawdzone |
 | Wygląd | Zrzuty desktop/mobile obejrzane, brak poziomego overflow, nawigacja i formularze sprawdzone w przeglądarce |
 | Zależności produkcyjne | `pnpm audit --prod`: 0 znanych zgłoszeń info/low/moderate/high/critical w odpowiedzi rejestru z dnia audytu |
@@ -79,7 +79,7 @@ Dlatego **niezaliczone lokalnie** pozostają:
 Workflow CI zawiera build kontenerów, migracje, start prawdziwego InvenTree/workera,
 bootstrap konta integracji i sprawdzenie gotowości API/PWA. Jego wynik należy
 potwierdzić dla opublikowanego commitu; sama definicja nie jest dowodem sukcesu.
-Lokalne 43+8 testów nie zastępują wymienionych bramek.
+Lokalne 43+10 testów nie zastępują wymienionych bramek.
 
 Dokumenty 09–11 opisują instalację, backup/restore i zabezpieczenia. Przed użyciem
 rzeczywistych zapasów konieczny jest pilotaż dwóch kont i zaliczenie pełnego restore.

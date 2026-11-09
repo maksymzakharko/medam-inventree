@@ -74,3 +74,16 @@ Przy utracie hosta odzyskuj pełny zgodny checkpoint na nowych zasobach, rotuj
 ujawnione sekrety i unieważniaj sesje/linki resetu. Nie uruchamiaj starszego InvenTree
 na nowszej bazie. Przed przełączeniem ruchu rozlicz operacje po checkpointcie,
 zapisz wyniki restore i uzyskaj końcową zgodę na produkcję.
+
+## Jednostki i harmonogramy InvenTree 1.7.0
+
+Part.units korzysta z rejestru jednostek fizycznych: `piece` oznacza jedną sztukę,
+np. ampułkę opisaną w nazwie produktu. Skrót `amp.` nie przechodzi walidacji;
+`amp` oznacza amper, więc nie zastępuje ampułki. Nie wykonujemy ukrytych przeliczeń.
+
+`INVENTREE_PLUGINS_ENABLED=False` dotyczy pluginów zewnętrznych. Wbudowane moduły
+nadal są ładowane. Compose dodatkowo wyłącza callbacki zdarzeń i harmonogramy
+pluginów oraz automatyczne sprawdzanie kursów/aktualizacji przez global_settings.
+Wymusza też włączony audyt stock i brak automatycznego usuwania dowodów audytu.
+Retencja pozostaje oddzielną zatwierdzaną polityką. Nie wyłącza to workera ani
+jego heartbeat; zbędne workflowy zmieniające stock nadal pozostają poza MVP.
