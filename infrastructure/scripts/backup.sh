@@ -37,11 +37,16 @@ for service in app-db inventree-db inventree-cache inventree-server edge; do
   }
 done
 resume_needed=0
+resume_services() {
+  # Resume only existing writers. Compose start follows dependencies and can rerun
+  # initialization/migrations or reject absent one-off migration containers.
+  timeout 300 "$compose" up -d --no-deps --no-recreate --no-build --wait --wait-timeout 240 "${running[@]}" >/dev/null
+}
 cleanup() {
   code=$?
   trap - EXIT
   if ((resume_needed)) && ((${#running[@]})); then
-    if ! timeout 300 "$compose" start "${running[@]}" >/dev/null; then
+    if ! resume_services; then
       printf 'ALARM: nie udało się wznowić usług po checkpointcie.\n' >&2
       "$root/infrastructure/scripts/alert.sh" 'MEDAM: błąd wznowienia usług po backupie.' || true
       code=1
@@ -123,7 +128,7 @@ PY
 # An offsite-success marker remains separate from the complete local checkpoint.
 mv "$staging" "$complete"
 python3 "$root/infrastructure/scripts/checkpoint.py" validate "$complete"
-timeout 300 "$compose" start "${running[@]}" >/dev/null
+resume_services
 resume_needed=0
 rm -f -- "$backup_root/.maintenance"
 printf 'Kompletny lokalny checkpoint: %s\n' "$complete"

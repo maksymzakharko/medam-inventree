@@ -39,7 +39,10 @@ if name=='medam-compose.sh':
         else: print('container-'+arguments[-1])
     elif command=='stop':
         if scenario=='stop-command-failed' and arguments[-1]=='api': sys.exit(17)
-    elif command=='start': pass
+    elif command=='up':
+        required=['-d','--no-deps','--no-recreate','--no-build','--wait','--wait-timeout','240']
+        if arguments[1:8] != required: sys.exit(30)
+        if scenario=='resume-failed': sys.exit(31)
     elif command=='run':
         if 'queue_size()' not in arguments[-1] or 'lock_size()' not in arguments[-1]: sys.exit(29)
         if scenario in ('pending-jobs','locked-jobs'): sys.exit(18)
@@ -129,7 +132,8 @@ class BackupSafety(unittest.TestCase):
         self.assertFalse(any(event['command'] == 'restic' for event in self.events))
 
     def assert_resumed(self):
-        self.assertEqual(self.compose_calls('start'), [['start', *[s for s in RUNNING if s in WRITERS]]])
+        self.assertEqual(self.compose_calls('up'), [['up', '-d', '--no-deps', '--no-recreate',
+            '--no-build', '--wait', '--wait-timeout', '240', *[s for s in RUNNING if s in WRITERS]]])
         self.assertFalse((self.root / 'backups' / '.maintenance').exists())
 
     def test_complete_local_checkpoint_preserves_gate_and_resumes_writers(self):
@@ -199,8 +203,16 @@ class BackupSafety(unittest.TestCase):
         result = self.run_backup('one-off-writer', '--offsite')
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(self.compose_calls('stop'), [])
-        self.assertEqual(self.compose_calls('start'), [])
+        self.assertEqual(self.compose_calls('up'), [])
         self.assert_not_offsite()
+        self.assertFalse((self.root / 'backups' / '.maintenance').exists())
+
+    def test_failed_resume_alerts_and_does_not_claim_offsite_success(self):
+        result = self.run_backup('resume-failed', '--offsite')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('ALARM:', result.stderr)
+        self.assert_not_offsite()
+        self.assertTrue(any(event['command'] == 'alert.sh' for event in self.events))
         self.assertFalse((self.root / 'backups' / '.maintenance').exists())
 
     def assert_queue_refused(self, scenario):
