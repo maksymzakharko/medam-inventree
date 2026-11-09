@@ -167,7 +167,10 @@ obie bazy i media na nowych wolumenach, nadaje granty runtime, unieważnia sesje
 i linki resetu oraz zmienia sekret sesji. Zachowuje oryginalny pepper/token
 InvenTree, historię operacji i bramę. Nie wykonuje migracji ani replay zapisów.
 Nie uruchamia workera, panelu administracyjnego, TLS/ACME lub wysyłki alertów.
-Wszystkie sieci są wewnętrzne. Certyfikaty Caddy pozostają w checkpointcie, nie
+API, InvenTree i bazy korzystają wyłącznie z sieci wewnętrznych. Tylko edge ma
+dodatkowy most `restore-access`, potrzebny Dockerowi do opublikowania portu na
+loopback; nie nadaje on zewnętrznej trasy API ani InvenTree. Opcjonalny panel ma
+oddzielny most wyłącznie dla proxy i pozostaje wyłączony. Certyfikaty Caddy pozostają w checkpointcie, nie
 są serwowane na hoście testowym. Oryginalna konfiguracja jest wyłącznie dowodem
 w `recovery-evidence`.
 

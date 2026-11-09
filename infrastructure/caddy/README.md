@@ -8,3 +8,6 @@ Fastify ufa wyłącznie wydzielonej podsieci ingress z edge i API.
 `Caddyfile.admin` obsługuje osobny profil `admin` na 127.0.0.1:8090, statyczne pliki
 InvenTree i chronione media (`/auth/`). Nie jest trasą publicznej PWA. Używaj tunelu
 SSH/VPN i panelu z prawem zapisu tylko w kontrolowanym maintenance.
+Proxy ma własny most `admin-access`, ponieważ Docker nie publikuje portów na
+sieci wyłącznie wewnętrznej. InvenTree nadal pozostaje na sieciach wewnętrznych;
+port panelu jest przypisany wyłącznie do loopback hosta.

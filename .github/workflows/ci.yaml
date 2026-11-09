@@ -98,6 +98,18 @@ jobs:
           curl --fail --silent http://localhost:8080/health/edge
           curl --fail --silent http://localhost:8080/icons/icon-192.png --output /tmp/medam-icon.png
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/me)" = 401
+      - name: Verify loopback-only administration proxy
+        run: |
+          infrastructure/scripts/medam-compose.sh --profile admin up -d --no-deps --wait admin-proxy
+          curl --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 1 \
+            --retry-max-time 20 --max-time 5 http://127.0.0.1:8090/api/ --output /tmp/medam-admin-info.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/medam-admin-info.json') as file:
+              info = json.load(file)
+          assert info['version'] == '1.7.0' and info['apiVersion'] == 570
+          print('Private loopback administration proxy verified.')
+          PY
       - name: Exercise the real stock and audit contract
         run: |
           infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \

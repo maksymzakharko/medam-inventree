@@ -241,7 +241,7 @@ services:
     volumes:
       - ./infrastructure/caddy/Caddyfile.admin:/etc/caddy/Caddyfile:ro
       - inventree-data:/inventree:ro
-    networks: [inventree-api]
+    networks: [inventree-api, admin-access]
     depends_on:
       inventree-server: { condition: service_healthy }
     mem_limit: 128m
@@ -253,6 +253,8 @@ networks:
   app-data: { internal: true }
   inventree-api: { internal: true }
   inventree-data: { internal: true }
+  # Only the SSH/loopback administration proxy uses this host-access bridge.
+  admin-access: {}
 
 volumes:
   app-db-data:

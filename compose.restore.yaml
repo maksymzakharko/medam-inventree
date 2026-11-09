@@ -8,6 +8,9 @@ services:
       COOKIE_SECURE: "false"
   edge:
     restart: "no"
+    # Docker publishes ports only through a non-internal endpoint. Keep this
+    # access bridge exclusive to edge; API and InvenTree retain no external route.
+    networks: [ingress, restore-access]
   app-db:
     restart: "no"
   inventree-db:
@@ -23,3 +26,4 @@ services:
 networks:
   ingress:
     internal: true
+  restore-access: {}
