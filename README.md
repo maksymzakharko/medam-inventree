@@ -25,7 +25,7 @@ nie twierdzi, że wysłał e-mail. MVP nie przechowuje danych pacjentów i nie i
 ## Uruchomienie z Dockerem
 
 Wymagane: Linux, Docker Engine/Compose v2, Git, Bash, OpenSSL, zapas RAM/dysku na
-oficjalne obrazy. VPS: Ubuntu 24.04 LTS, rekomendowane 4 vCPU / 8 GB / 75 GB NVMe.
+oficjalne obrazy. VPS: Ubuntu 26.04 LTS, rekomendowane 4 vCPU / 8 GB / 75 GB NVMe.
 
 ```bash
 git clone https://github.com/maksymzakharko/medam-inventree.git

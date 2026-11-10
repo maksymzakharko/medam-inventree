@@ -7,7 +7,7 @@ Pełny start Compose, HTTPS i restore muszą przejść odbiór na docelowym śro
 
 ## Wymagania i przygotowanie
 
-Rekomendacja: OVH VPS-2, 4 vCPU, 8 GB RAM, minimum 75 GB NVMe, Ubuntu 24.04 LTS
+Rekomendacja: OVH VPS-2, 4 vCPU, 8 GB RAM, minimum 75 GB NVMe, Ubuntu 26.04 LTS
 amd64, region UE. Przed zakupem sprawdź aktualne parametry. Potrzebne są także
 domena, storage offsite i oddzielny host do próby restore. Nie ma płatnego panelu,
 Booksy ani obowiązkowej płatnej usługi logowania.
@@ -157,3 +157,5 @@ rozchód częściowy/pełny, niepewna odpowiedź i trwała blokada, replay tego 
 przypisania po odwołaniu sesji, stock tracking/audyt, pełny restore z offsite,
 Android/iOS i restart stagingu. Zapisz rzeczywiste wyniki i czas RPO/RTO.
 Brak któregokolwiek dowodu oznacza niewykonany odbiór, a nie sukces domyślny.
+
+Zgodność Ubuntu 26.04, wynik rzeczywistego CI i granice testu: [dokument 14](14-ubuntu-26.04.md).

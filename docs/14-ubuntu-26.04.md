@@ -12,8 +12,17 @@ nie zawierają ścieżek zależnych od wydania Ubuntu. Nie znaleziono wymogu zmi
 kodu aplikacji dla 26.04.
 
 Workflow CI przeniesiono na ubuntu-26.04 dla testów aplikacji oraz pełnego
-Compose/kontraktu InvenTree/checkpointu/restore. Wynik należy odczytać dla
-konkretnego commitu w Actions; sama zmiana runnera nie potwierdza zgodności.
+Compose/kontraktu InvenTree/checkpointu/restore. Wynik: **oba zadania zaliczone** dla commitu
+`beb0847b32037900fe7397a9e610ff4358ad628d`.
+[CI #21](https://github.com/maksymzakharko/medam-inventree/actions/runs/42846658502),
+10 listopada 2026, host Ubuntu 26.04.1 amd64.
+
+Zaliczone: 43 testy integracyjne, 10 przeglądarkowych (26,6 s),
+32 infrastruktury, pełny build/start, bootstrap 12 magazynów, finalizacja
+uprawnień, prywatny panel, sześć rzeczywistych operacji stock/audit, checkpoint
+obu baz/plików i izolowany restore z porównaniami oraz HTTP/401.
+Restore małego zestawu na tym samym runnerze: **49,029 s**, obrazy już dostępne.
+Nie stwierdzono potrzeby zmiany kodu aplikacji ani obrazów kontenerów.
 
 Host OVH wymaga oddzielnego odbioru: Docker z oficjalnego repozytorium dla
 właściwego kodu wydania (bez wymuszania repozytorium noble), AppArmor, cgroups,

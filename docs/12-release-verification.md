@@ -115,3 +115,10 @@ hosta, testu z niezależnej lokalizacji ani odzyskania po utracie całego VPS.
 
 Dokumenty 09–11 opisują instalację, backup/restore i zabezpieczenia. Przed użyciem
 rzeczywistych zapasów konieczny jest pilotaż dwóch kont i restore z docelowego offsite.
+
+## Weryfikacja Ubuntu 26.04 — 10 listopada 2026
+
+Pełny przebieg CI #21 na Ubuntu 26.04.1 również zaliczony: 43/10/32 testy,
+prawdziwy InvenTree oraz izolowany restore 49,029 s.
+[Szczegóły, commit i ograniczenia](14-ubuntu-26.04.md). Wcześniejsze wyniki
+powyżej pozostają dowodem dla Ubuntu 24.04; nie zastąpiono ich nowymi wartościami.

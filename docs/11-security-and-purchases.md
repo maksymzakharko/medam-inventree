@@ -6,7 +6,7 @@ do zamówienia i odbioru; nie jest potwierdzeniem zgodności prawnej ani wydajno
 
 | Pozycja | Wybór / odpowiedzialność |
 | --- | --- |
-| VPS | OVH VPS-2, docelowo 4 vCPU/8 GB/75 GB NVMe, Ubuntu 24.04 LTS amd64, UE; potwierdzić aktualną ofertę i pomiary |
+| VPS | OVH VPS-2, docelowo 4 vCPU/8 GB/75 GB NVMe, Ubuntu 26.04 LTS amd64, UE; potwierdzić aktualną ofertę i pomiary |
 | Domena | Własna domena/subdomena magazynu, dostęp do DNS i poprawne A/AAAA |
 | HTTPS | Automatyczny certyfikat Caddy/ACME; publiczne TCP 80/443, kontrola odnowienia |
 | Offsite | Oddzielny storage w UE, pojemność/transfer/retencja, test dostępu oraz restic append-only/immutability |
