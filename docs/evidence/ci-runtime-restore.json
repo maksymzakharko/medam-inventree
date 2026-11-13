@@ -1,0 +1,95 @@
+{
+  "recordedAtUtc": "2026-11-09T07:33:10.829729+00:00",
+  "sourceCommit": "1821f2d5d659c07f7db5a4576c04442075d2991b",
+  "workflowUrl": "https://github.com/maksymzakharko/medam-inventree/actions/runs/42579067148",
+  "conclusion": "success",
+  "fixtureDataOnly": true,
+  "inventreeVersion": "1.7.0",
+  "inventreeApiVersion": 570,
+  "postgresVersion": "17.11",
+  "broker": "django_q.brokers.redis_broker.Redis",
+  "bootstrap": {
+    "administratorCli": true,
+    "warehouseMappings": 12,
+    "repeatedSyncWithoutDuplicates": true,
+    "leastPrivilegeAfterFinalization": true,
+    "privateAdminLoopbackHttp": true
+  },
+  "stockContract": [
+    {
+      "kind": "receipt",
+      "requestedQuantity": "5",
+      "appliedQuantity": "5",
+      "state": "SUCCEEDED"
+    },
+    {
+      "kind": "consumption",
+      "requestedQuantity": "2",
+      "appliedQuantity": "2",
+      "state": "SUCCEEDED"
+    },
+    {
+      "kind": "split_transfer",
+      "requestedQuantity": "1",
+      "appliedQuantity": "1",
+      "state": "SUCCEEDED"
+    },
+    {
+      "kind": "increase",
+      "requestedQuantity": "1",
+      "appliedQuantity": "1",
+      "state": "SUCCEEDED"
+    },
+    {
+      "kind": "full_transfer",
+      "requestedQuantity": "3",
+      "appliedQuantity": "3",
+      "state": "SUCCEEDED"
+    },
+    {
+      "kind": "clamped_consumption",
+      "requestedQuantity": "20",
+      "appliedQuantity": "3",
+      "state": "DISCREPANCY"
+    }
+  ],
+  "checkpoint": {
+    "localOnly": true,
+    "allWritersGracefulExitZero": true,
+    "brokerPendingAfterShutdown": 0,
+    "brokerLocksAfterShutdown": null,
+    "redisHasAcknowledgementLocks": false,
+    "bothPostgresDumps": true,
+    "archivesAndChecksumsValidated": true,
+    "sourceServicesResumedHealthy": true
+  },
+  "restore": {
+    "scope": "same-runner isolated logical restore with already available images and a small fixture dataset",
+    "elapsedSeconds": 48.365,
+    "completedAtUtc": "2026-11-09T07:29:37.9560686Z",
+    "freshProjectAndVolumes": true,
+    "bothDatabasesRestored": true,
+    "checks": [
+      "all fixture stock rows including LOT/EXP and quantity",
+      "Drizzle migration hashes",
+      "InvenTree media marker",
+      "API readiness with writesReady",
+      "host loopback edge health",
+      "unauthenticated API 401"
+    ],
+    "workerStarted": false,
+    "offsiteTested": false,
+    "hostRecoveryTested": false,
+    "rpoMeasured": false,
+    "hostRtoMeasured": false,
+    "productionLoadTested": false
+  },
+  "remainingAcceptance": [
+    "VPS security/ports/IPv6/reboot",
+    "domain and real HTTPS",
+    "Android and iOS physical devices",
+    "encrypted offsite and independent host recovery",
+    "RPO/RTO and load",
+    "owner production acceptance"
+  ]
+}

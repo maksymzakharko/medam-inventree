@@ -1,7 +1,13 @@
-# Plan Caddy
+# Konfiguracje Caddy
 
-Caddy udostępni publicznie wyłącznie PWA i `/api`, z automatycznym HTTPS dla domeny
-właściciela. Panel InvenTree będzie dostępny tylko kanałem administracyjnym.
-Nie przekazujemy dowolnego `/api` do InvenTree. `trustProxy` w Fastify zostanie
-ograniczone do znanego proxy/sieci kontenerowej, bez zaufania do nagłówków klienta.
-Gotowy Caddyfile powstanie po wyborze domeny i sposobu dostępu administracyjnego.
+`Caddyfile.local` serwuje PWA i `/api/*` przez loopback; `Caddyfile.production`
+włącza HTTPS dla `APP_DOMAIN`. API zachowuje prefiks `/api`; prywatne odpowiedzi
+mają `Cache-Control: no-store`. Nagłówki bezpieczeństwa i limit body 16KB są wspólne.
+Fastify ufa wyłącznie wydzielonej podsieci ingress z edge i API.
+
+`Caddyfile.admin` obsługuje osobny profil `admin` na 127.0.0.1:8090, statyczne pliki
+InvenTree i chronione media (`/auth/`). Nie jest trasą publicznej PWA. Używaj tunelu
+SSH/VPN i panelu z prawem zapisu tylko w kontrolowanym maintenance.
+Proxy ma własny most `admin-access`, ponieważ Docker nie publikuje portów na
+sieci wyłącznie wewnętrznej. InvenTree nadal pozostaje na sieciach wewnętrznych;
+port panelu jest przypisany wyłącznie do loopback hosta.

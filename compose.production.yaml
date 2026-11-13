@@ -1,0 +1,22 @@
+services:
+  api:
+    environment:
+      NODE_ENV: production
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN=https://your-domain}
+      COOKIE_SECURE: "true"
+  app-cli:
+    environment:
+      NODE_ENV: production
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN=https://your-domain}
+      COOKIE_SECURE: "true"
+  migrate:
+    environment:
+      NODE_ENV: production
+      APP_ORIGIN: ${APP_ORIGIN:?Set APP_ORIGIN=https://your-domain}
+      COOKIE_SECURE: "true"
+  edge:
+    ports: !override ["80:80", "443:443"]
+    environment:
+      APP_DOMAIN: ${APP_DOMAIN:?Set APP_DOMAIN=your-domain}
+    volumes:
+      - ./infrastructure/caddy/Caddyfile.production:/etc/caddy/Caddyfile:ro

@@ -1,0 +1,32 @@
+[Unit]
+Description=MEDAM coordinated checkpoint and encrypted offsite backup
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+OnFailure=medam-alert@%n.service
+
+[Service]
+Type=oneshot
+User=root
+Group=root
+WorkingDirectory=/opt/medam
+EnvironmentFile=/etc/medam/restic.env
+Environment=RESTIC_CACHE_DIR=/var/cache/medam-restic
+CacheDirectory=medam-restic
+CacheDirectoryMode=0700
+ExecStart=/opt/medam/infrastructure/scripts/backup.sh --offsite
+TimeoutStartSec=1h
+TimeoutStopSec=180
+UMask=0077
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/medam/backups
+ReadOnlyPaths=/opt/medam/secrets
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=MEDAM checks every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=5s
+Unit=medam-monitor.service
+
+[Install]
+WantedBy=timers.target

@@ -14,3 +14,11 @@ backups/
 *.pem
 *.log
 .DS_Store
+
+*.tsbuildinfo
+
+__pycache__/
+*.pyc
+recovery-evidence/
+restic.env
+monitor.env

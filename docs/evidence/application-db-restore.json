@@ -1,0 +1,80 @@
+{
+  "atUtc": "2026-11-08T20:47:27.505683+00:00",
+  "postgres": "17.11",
+  "source": "medam_test",
+  "isolatedTarget": "medam_restore_check_20261108204727",
+  "scope": "Application DB dump/restore only. No InvenTree/media/offsite/VPS restore tested.",
+  "elapsedSeconds": 0.409,
+  "tables": [
+    {
+      "table": "application_audit_events",
+      "rows": 1,
+      "identical": true
+    },
+    {
+      "table": "idempotency_records",
+      "rows": 0,
+      "identical": true
+    },
+    {
+      "table": "inventory_mutation_gate",
+      "rows": 1,
+      "identical": true
+    },
+    {
+      "table": "login_rate_limits",
+      "rows": 3,
+      "identical": true
+    },
+    {
+      "table": "password_reset_tokens",
+      "rows": 0,
+      "identical": true
+    },
+    {
+      "table": "problem_reports",
+      "rows": 0,
+      "identical": true
+    },
+    {
+      "table": "roles",
+      "rows": 3,
+      "identical": true
+    },
+    {
+      "table": "sessions",
+      "rows": 1,
+      "identical": true
+    },
+    {
+      "table": "user_warehouse_assignments",
+      "rows": 10,
+      "identical": true
+    },
+    {
+      "table": "users",
+      "rows": 12,
+      "identical": true
+    },
+    {
+      "table": "warehouse_mappings",
+      "rows": 12,
+      "identical": true
+    },
+    {
+      "table": "warehouse_product_policies",
+      "rows": 12,
+      "identical": true
+    },
+    {
+      "table": "drizzle.__drizzle_migrations",
+      "rows": 3,
+      "identical": true
+    }
+  ],
+  "tablesIdentical": 13,
+  "allIdentical": true,
+  "gatePreserved": true,
+  "sessionsAndResetTokensRevokedInTarget": true,
+  "applicationStartedOnRestoredDB": false
+}

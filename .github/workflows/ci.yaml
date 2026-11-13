@@ -1,0 +1,156 @@
+name: Verify MEDAM
+on:
+  push:
+    # Pull requests cover feature branches without a duplicate push run.
+    branches: [main]
+    paths-ignore: ['docs/**', 'README.md']
+  pull_request:
+    paths-ignore: ['docs/**', 'README.md']
+  workflow_dispatch:
+
+concurrency:
+  group: verify-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  application:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17.11-alpine3.24@sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac
+        env:
+          POSTGRES_USER: medam_test
+          POSTGRES_DB: medam_test
+          # Disposable CI database only; this is never a deployment credential.
+          POSTGRES_PASSWORD: ci-disposable-database
+        ports: [5432:5432]
+        options: >-
+          --health-cmd "pg_isready -U medam_test -d medam_test"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    env:
+      TEST_DATABASE_URL: postgresql://medam_test:ci-disposable-database@127.0.0.1:5432/medam_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 12.18.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test:integration
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm test:e2e
+      - name: Browser report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-report
+          path: playwright-report/
+          retention-days: 7
+
+  container-build:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate local configuration
+        run: |
+          python3 -m unittest discover -s infrastructure/tests -v
+          infrastructure/scripts/setup.sh
+          infrastructure/scripts/medam-compose.sh config --quiet
+          for file in Caddyfile.local Caddyfile.production Caddyfile.admin; do
+            docker run --rm --entrypoint caddy -e APP_DOMAIN=magazyn.example.invalid \
+              -v "$PWD/infrastructure/caddy:/etc/caddy:ro" \
+              caddy:2.11.9-alpine@sha256:78bd35025c7ba85961dd149ae670315129954e77abe2383ac47c89106b35ade9 \
+              adapt --config "/etc/caddy/$file" --adapter caddyfile >/dev/null
+          done
+      - name: Build API and PWA containers
+        run: infrastructure/scripts/medam-compose.sh build api edge
+      - name: CLI migration smoke
+        run: |
+          infrastructure/scripts/medam-compose.sh up -d --wait app-db
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps migrate
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps app-grants
+      - name: Start real InvenTree and worker
+        run: infrastructure/scripts/medam-compose.sh up -d --wait inventree-server inventree-worker
+      - name: Bootstrap private integration identity
+        run: |
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -v "$PWD/secrets:/medam-secrets:rw" \
+            inventree-server python /medam/inventree-bootstrap.py
+      - name: Exercise real administrator and warehouse bootstrap
+        env:
+          CI: "true"
+          MEDAM_BOOTSTRAP_TEST: ci-only-ephemeral
+        run: bash tests/contract/verify-bootstrap.sh
+      - name: Wait for finalized API and PWA
+        run: infrastructure/scripts/medam-compose.sh up -d --no-deps --wait api edge
+      - name: Verify actual upstream version and public application
+        run: |
+          infrastructure/scripts/medam-compose.sh exec -T api node --input-type=module -e \
+            'const r=await fetch("http://127.0.0.1:3000/health/ready"); if(!r.ok)process.exit(1);const j=await r.json();if(j.status!=="ok"||!j.writesReady)process.exit(1);'
+          curl --fail --silent http://localhost:8080/health/edge
+          curl --fail --silent http://localhost:8080/icons/icon-192.png --output /tmp/medam-icon.png
+          test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://localhost:8080/api/me)" = 401
+      - name: Verify loopback-only administration proxy
+        run: |
+          infrastructure/scripts/medam-compose.sh --profile admin up -d --no-deps --wait admin-proxy
+          curl --fail --silent --show-error --retry 10 --retry-connrefused --retry-delay 1 \
+            --retry-max-time 20 --max-time 5 http://127.0.0.1:8090/api/ --output /tmp/medam-admin-info.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/medam-admin-info.json') as file:
+              info = json.load(file)
+          assert info['version'] == '1.7.0' and info['apiVersion'] == 570
+          print('Private loopback administration proxy verified.')
+          PY
+      - name: Exercise the real stock and audit contract
+        run: |
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/secrets:/medam-secrets:rw" \
+            -v "$PWD/tests/contract/seed-inventree.py:/medam/seed-contract.py:ro" \
+            inventree-server python /medam/seed-contract.py
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/tests/contract/inventree-live.mjs:/app/inventree-live.mjs:ro" \
+            -v "$PWD/secrets/contract-fixture.json:/app/contract-fixture.json:ro" \
+            app-cli inventree-live.mjs
+      - name: Rehearse checkpoint and isolated restore
+        timeout-minutes: 15
+        env:
+          CI: "true"
+          MEDAM_RESTORE_TEST: ci-only-isolated
+        run: bash tests/contract/verify-restore.sh
+      - name: Sanitized container diagnostics
+        if: failure()
+        run: |
+          infrastructure/scripts/medam-compose.sh run --rm --no-deps -T \
+            -e CI=true -e MEDAM_CONTRACT_TEST=ci-only-ephemeral \
+            -v "$PWD/tests/contract/seed-inventree.py:/medam/seed-contract.py:ro" \
+            inventree-server python /medam/seed-contract.py --diagnose || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import subprocess
+          commands=[['infrastructure/scripts/medam-compose.sh','logs','--no-color','--tail=60']]
+          target=Path('/tmp/medam-restore-ci')
+          if target.is_dir() and not target.is_symlink() and (target/'.env').is_file():
+              commands.append(['docker','compose','--project-directory',str(target),'--env-file',str(target/'.env'),
+                  '-f',str(target/'compose.yaml'),'-f',str(target/'compose.restore.yaml'),'logs','--no-color','--tail=60'])
+          log=''
+          for command in commands:
+              result=subprocess.run(command,capture_output=True,text=True,timeout=60)
+              log+=result.stdout+result.stderr
+          for directory in (Path('secrets'),target/'secrets'):
+              for path in directory.glob('*'):
+                  if path.is_file():
+                      value=path.read_text().strip()
+                      if len(value)>7: log=log.replace(value,'[REDACTED]')
+          print(log[-30000:])
+          PY

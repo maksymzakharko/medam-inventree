@@ -1,9 +1,30 @@
 {
   "name": "medam-inventree",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@12.18.0",
   "engines": {
     "node": ">=26.13.0 <27"
-  }
+  },
+  "scripts": {
+    "build": "pnpm --filter @medam/shared build && pnpm --filter @medam/api build && pnpm --filter @medam/web build",
+    "typecheck": "pnpm --filter @medam/shared build && pnpm --filter @medam/api typecheck && pnpm --filter @medam/web typecheck",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.config.ts",
+    "test:e2e": "playwright test",
+    "dev:api": "pnpm --filter @medam/api dev",
+    "dev:web": "pnpm --filter @medam/web dev"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "@types/pg": "8.23.1",
+    "argon2": "0.45.2",
+    "fastify": "5.12.8",
+    "pg": "8.23.1",
+    "tsx": "4.23.15",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  },
+  "type": "module"
 }

@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "beb0847b32037900fe7397a9e610ff4358ad628d",
+  "workflowUrl": "https://github.com/maksymzakharko/medam-inventree/actions/runs/42846658502",
+  "host": "Ubuntu 26.04.1 amd64",
+  "conclusion": "success",
+  "integrationPassed": 43,
+  "browserPassed": 10,
+  "infrastructurePassed": 32,
+  "realInventreeContractPassed": true,
+  "isolatedRestoreSeconds": 49.029,
+  "offsiteTested": false,
+  "ovhImageTested": false,
+  "hostRebootTested": false
+}

@@ -29,7 +29,7 @@ Przykładowy DTO pozycji:
   "name": "Preparat testowy",
   "quantity": "12",
   "availableQuantity": "12",
-  "unit": "amp.",
+  "unit": "piece",
   "lot": "LOT-TEST",
   "exp": "2027-06-30",
   "minimum": "5",

@@ -1,0 +1,35 @@
+{$APP_DOMAIN} {
+	header Strict-Transport-Security "max-age=31536000"
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; manifest-src 'self'; worker-src 'self'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+		-Server
+	}
+	encode zstd gzip
+	request_body {
+		max_size 16KB
+	}
+	handle /health/edge {
+		respond "ok" 200
+	}
+	handle /api/* {
+		header Cache-Control no-store
+		reverse_proxy api:3000
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
+# Internal liveness endpoint; not published separately.
+:80 {
+	handle /health/edge {
+		respond "ok" 200
+	}
+	handle {
+		redir https://{$APP_DOMAIN}{uri} 308
+	}
+}
