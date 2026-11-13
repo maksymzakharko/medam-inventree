@@ -1,5 +1,9 @@
 # MEDAM — magazyn leków
 
+**Kontynuacja w nowym środowisku:** zacznij od [CONTINUE.md](CONTINUE.md) i
+[stanu przekazania](docs/15-handover.md). Właściciel pozostaje przy InvenTree,
+kupił VPS-1 (4 GB RAM); instalacja na tym VPS i pomiar zasobów są jeszcze przed nami.
+
 React PWA i API Node.js/Fastify dla magazynu głównego, gabinetu i dziesięciu
 osobistych magazynów ratowników. InvenTree jest jedynym źródłem bieżących zapasów,
 lokalizacji, LOT i EXP. Wersja `0.1.0` jest przeznaczona do testów i pilotażu;
@@ -81,6 +85,8 @@ Sekrety `.env`/`secrets/` są poza Git. PWA nie cache'uje API ani offline rozcho
 
 ## Dokumentacja
 
+- [Kontynuacja w innym środowisku](CONTINUE.md) i [stan przekazania](docs/15-handover.md)
+- [Opis biznesowy / przejęcie przez wykonawcę](docs/16-business-brief.md)
 - [Instalacja i aktualizacja](docs/09-installation.md)
 - [Backup i izolowany restore](docs/10-backup-restore.md)
 - [VPS, dodatki OVH i zabezpieczenia](docs/11-security-and-purchases.md)
@@ -90,4 +96,6 @@ Sekrety `.env`/`secrets/` są poza Git. PWA nie cache'uje API ani offline rozcho
 - [Projekt bezpieczeństwa](docs/04-security-and-consistency.md)
 
 Dokumenty 01–08 zachowują stan etapu projektowania z 7 listopada 2026.
-Aktualne polecenia i status implementacji: README i dokumenty 09–13.
+Aktualne polecenia i status implementacji: README i dokumenty 09–16; najnowsze
+decyzje właściciela i zakup VPS opisuje dokument 15. Prompt wariantów architektury
+w `docs/requirements` jest archiwalny — obowiązuje kontynuacja z InvenTree.

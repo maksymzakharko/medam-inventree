@@ -1,5 +1,13 @@
 # Zasady pracy nad MEDAM
 
+## Punkt wznowienia — 13 listopada 2026
+
+- Najpierw przeczytaj `CONTINUE.md` i `docs/15-handover.md`.
+- Właściciel kupił OVH VPS-1 (2 vCore, 4 GB RAM, 40 GB NVMe). Działanie pełnej konfiguracji na tym limicie wymaga audytu i pomiarów.
+- Ostateczna decyzja właściciela: **kontynuować na InvenTree**. Wcześniejsze rozważania o własnym silniku oraz archiwalny prompt badawczy nie są aktywnym zadaniem przebudowy.
+- Nie wykonano logowania agenta ani instalacji na VPS: poprzednie środowisko miało wyłączony TCP. Nie traktuj jego `Connection refused` jako dowodu awarii SSH serwera.
+- Dostęp i sekrety nowego środowiska wymagają odrębnej, bezpiecznej konfiguracji; prywatny klucz starego środowiska nie znajduje się w repozytorium.
+
 ## Obowiązujące wymagania właściciela
 
 - Najpierw audyt i plan; czekaj na zgodę przed zmianami produkcyjnymi.
